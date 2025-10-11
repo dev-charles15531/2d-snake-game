@@ -14,6 +14,9 @@ include_directories(include)
 set(SOURCES
     src/main.cpp
     src/glad.c
+    src/shader.cpp
+    src/snake.cpp
+    src/render_engine.cpp
 )
 
 # Add glad as a static library from source
