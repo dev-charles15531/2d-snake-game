@@ -17,6 +17,7 @@ set(SOURCES
     src/shader.cpp
     src/snake.cpp
     src/render_engine.cpp
+    src/game.cpp
 )
 
 # Add glad as a static library from source

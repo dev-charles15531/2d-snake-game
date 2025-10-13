@@ -1,28 +1,36 @@
 #pragma once
-
 #include <SFML/Window.hpp>
 #include <SFML/Window/Window.hpp>
+#include <utility>
 
 #include "./glad/glad.h"
 #include "shader.hpp"
 #include "snake.hpp"
 
+using ScreenSize = std::pair<GLuint, GLuint>;
+
 class RenderEngine
 {
  public:
-  RenderEngine(Snake& snake, Shader& shaderProgram, int screenWidth, int screenHeight);
+  RenderEngine(sf::Window& window, Snake& snake, Shader& shaderProgram, CellSize& cellSize, ScreenSize& screenSize);
+  ~RenderEngine();
   void clearScreen();
 
   void terminate();
-  void render(sf::Window& window, float cellWidth, float cellHeight);
+  void render();
+
+  sf::Window& getWindow() const { return window; }
 
  private:
-  float screenWidth;
-  float screenHeight;
+  sf::Window& window;
   Snake& snake;
   Shader& shaderProgram;
+  CellSize& cellSize;
+  std::pair<GLuint, GLuint>& screenSize;
+  // OpenGL objects
   GLuint VBO, VAO, EBO;
+  std::pair<GLuint, GLuint> init();
   void setupQuad();
-  void pollEvents(sf::Window& window);
+  void pollEvents();
   void setupCoordinates();
 };

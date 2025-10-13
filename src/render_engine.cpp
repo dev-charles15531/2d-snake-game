@@ -7,12 +7,19 @@
 #include "../include/glad/glad.h"
 #include "../include/glm/gtc/type_ptr.hpp"
 
-RenderEngine::RenderEngine(Snake& snake, Shader& shaderProgram, int screenWidth, int screenHeight)
-    : snake(snake), shaderProgram(shaderProgram), screenWidth(screenWidth), screenHeight(screenHeight)
+RenderEngine::RenderEngine(sf::Window& window, Snake& snake, Shader& shaderProgram, CellSize& cellSize,
+                           ScreenSize& screenSize)
+    : window(window), snake(snake), shaderProgram(shaderProgram), cellSize(cellSize), screenSize(screenSize)
 {
   setupQuad();
   setupCoordinates();
   glEnable(GL_DEPTH_TEST);
+}
+
+RenderEngine::~RenderEngine()
+{
+  terminate();
+  window.close();
 }
 
 /**
@@ -66,7 +73,7 @@ void RenderEngine::setupCoordinates()
 
   glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
   glm::mat4 projection =
-      glm::ortho(0.0f, static_cast<float>(screenWidth), 0.0f, static_cast<float>(screenHeight), 0.1f, 100.0f);
+      glm::ortho(0.0f, static_cast<float>(screenSize.first), 0.0f, static_cast<float>(screenSize.second), 0.1f, 100.0f);
 
   glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "view"), 1, GL_FALSE, glm::value_ptr(view));
   glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
@@ -88,10 +95,10 @@ void RenderEngine::clearScreen()
  * @param cellWidth Width of each cell in the grid.
  * @param cellHeight Height of each cell in the grid.
  */
-void RenderEngine::render(sf::Window& window, float cellWidth, float cellHeight)
+void RenderEngine::render()
 {
   // Handle window events
-  pollEvents(window);
+  pollEvents();
 
   // Clear the screen
   clearScreen();
@@ -105,14 +112,16 @@ void RenderEngine::render(sf::Window& window, float cellWidth, float cellHeight)
   for (const auto& segment : snake.getSegments())
   {
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(segment.x * cellWidth, segment.y * cellHeight, 0.0f));
-    model = glm::scale(model, glm::vec3(cellWidth / 2.0f, cellHeight / 2.0f, 1.0f));
+    model = glm::translate(model, glm::vec3(segment.x * cellSize.width, segment.y * cellSize.height, 0.0f));
+    model = glm::scale(model, glm::vec3(cellSize.width, cellSize.height, 1.0f));
 
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
   }
 
   glBindVertexArray(0);
+
+  window.display();
 }
 
 /**
@@ -129,7 +138,7 @@ void RenderEngine::terminate()
  * Polls and processes window events.
  * @param window The SFML window to poll events from.
  */
-void RenderEngine::pollEvents(sf::Window& window)
+void RenderEngine::pollEvents()
 {
   while (const std::optional<sf::Event> event{window.pollEvent()})
   {

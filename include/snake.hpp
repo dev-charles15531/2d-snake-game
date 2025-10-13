@@ -1,5 +1,6 @@
 #pragma once
 
+#include <SFML/Window.hpp>
 #include <vector>
 
 #include "./header.hpp"
@@ -21,5 +22,8 @@ class Snake
   std::vector<Cell> segments;  // stores the segments of the snake
   int direction;               // 0: up, 1: right, 2: down, 3: left
   Shader &shaderProgram;
-  std::vector<Cell> generateSegments();
+  static std::vector<Cell> generateSegments();
+  sf::Clock clock;
+  float moveDelay{0.2f};
+  float timeSinceLastMove{0.0f};
 };

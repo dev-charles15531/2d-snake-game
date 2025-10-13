@@ -25,28 +25,37 @@ std::vector<Cell> Snake::generateSegments()
 
 void Snake::move()
 {
-  for (size_t i{segments.size() - 1}; i > 0; --i)
-  {
-    segments[i] = segments[i - 1];
-  }
+  float deltaTime{clock.restart().asSeconds()};
+  timeSinceLastMove += deltaTime;
 
-  // Move the head
-  switch (direction)
+  // Move the snake only if enough time has passed
+  if (timeSinceLastMove >= moveDelay)
   {
-    case 0:
-      segments[0].y += 1;
-      break;  // Up
-    case 1:
-      segments[0].x += 1;
-      break;  // Right
-    case 2:
-      segments[0].y -= 1;
-      break;  // Down
-    case 3:
-      segments[0].x -= 1;
-      break;  // Left
-    default:
-      break;
+    for (size_t i{segments.size() - 1}; i > 0; --i)
+    {
+      segments[i] = segments[i - 1];
+    }
+
+    // Move the head
+    switch (direction)
+    {
+      case 0:
+        segments[0].y += 1;
+        break;  // Up
+      case 1:
+        segments[0].x += 1;
+        break;  // Right
+      case 2:
+        segments[0].y -= 1;
+        break;  // Down
+      case 3:
+        segments[0].x -= 1;
+        break;  // Left
+      default:
+        break;
+    }
+
+    timeSinceLastMove = 0.0f;
   }
 }
 
