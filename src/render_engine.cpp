@@ -1,5 +1,6 @@
 #include "../include/render_engine.hpp"
 
+#include <SFML/Window/Event.hpp>
 #include <SFML/Window/Window.hpp>
 #include <iostream>
 #include <vector>
@@ -71,10 +72,9 @@ void RenderEngine::setupCoordinates()
 {
   shaderProgram.use();
 
-  glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
-  glm::mat4 projection =
-      glm::ortho(0.0f, static_cast<float>(screenSize.first), 0.0f, static_cast<float>(screenSize.second), 0.1f, 100.0f);
-
+  glm::mat4 view{glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f))};
+  glm::mat4 projection{glm::ortho(0.0f, static_cast<float>(screenSize.first), 0.0f,
+                                  static_cast<float>(screenSize.second), 0.1f, 100.0f)};
   glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "view"), 1, GL_FALSE, glm::value_ptr(view));
   glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 }
@@ -89,11 +89,7 @@ void RenderEngine::clearScreen()
 }
 
 /**
- * Renders the snake on the screen.
- * Each segment of the snake is drawn as a scaled and translated quad.
- * @param window The SFML window where rendering occurs.
- * @param cellWidth Width of each cell in the grid.
- * @param cellHeight Height of each cell in the grid.
+ * Rendering engine
  */
 void RenderEngine::render()
 {
@@ -111,7 +107,7 @@ void RenderEngine::render()
 
   for (const auto& segment : snake.getSegments())
   {
-    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 model{glm::mat4(1.0f)};
     model = glm::translate(model, glm::vec3(segment.x * cellSize.width, segment.y * cellSize.height, 0.0f));
     model = glm::scale(model, glm::vec3(cellSize.width, cellSize.height, 1.0f));
 
@@ -135,8 +131,7 @@ void RenderEngine::terminate()
 }
 
 /**
- * Polls and processes window events.
- * @param window The SFML window to poll events from.
+ * Poll events during rendering
  */
 void RenderEngine::pollEvents()
 {
@@ -148,5 +143,21 @@ void RenderEngine::pollEvents()
     {
       glViewport(0, 0, window.getSize().x, window.getSize().y);
     }
+
+    // dispatch other events to listeners
+    dispatchEvent(event.value());
+  }
+}
+
+/**
+ *
+ */
+void RenderEngine::addEventListener(const EventCallback& callback) { listeners.push_back(callback); }
+
+void RenderEngine::dispatchEvent(const sf::Event& event)
+{
+  for (auto& listener : listeners)
+  {
+    listener(event);
   }
 }

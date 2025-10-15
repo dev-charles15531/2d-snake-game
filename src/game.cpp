@@ -1,5 +1,6 @@
 #include "../include/game.hpp"
 
+#include <SFML/Window/Event.hpp>
 #include <SFML/Window/WindowEnums.hpp>
 #include <iostream>
 
@@ -25,8 +26,8 @@ Game::Game()
 
   const int GRID_WIDTH{80};
   const int GRID_HEIGHT{80};
-  float cellUnit = std::min(screenWidth / GRID_WIDTH, screenHeight / GRID_HEIGHT);
-  cellSize = {cellUnit, cellUnit};
+  unsigned int cellUnit{std::min(screenWidth / GRID_WIDTH, screenHeight / GRID_HEIGHT)};
+  cellSize = {static_cast<float>(cellUnit), static_cast<float>(cellUnit)};
 
   window.create(desktopMode, "SNAKE GAME", sf::Style::Default, sf::State::Windowed, settings);
   window.setFramerateLimit(60);
@@ -40,6 +41,28 @@ Game::Game()
   shaderProgram = new Shader("../src/shaders/vertex.glsl", "../src/shaders/fragment.glsl");
   snake = new Snake(0, *shaderProgram);
   renderEngine = new RenderEngine(window, *snake, *shaderProgram, cellSize, screenSize);
+
+  // Attach event listener for controls
+  renderEngine->addEventListener(
+      [this](const sf::Event& event)
+      {
+        if (event.is<sf::Event::KeyPressed>())
+        {
+          if (isPlaying)
+          {
+            // attach control to snake
+            const auto* keyPressed{event.getIf<sf::Event::KeyPressed>()};
+            snake->attachControl(*keyPressed);
+          }
+
+          // toggle play/pause on space key
+          if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Space))
+          {
+            isPlaying = !isPlaying;
+            std::cout << (isPlaying ? "▶️  Playing\n" : "⏸️  Paused\n");
+          }
+        }
+      });
 }
 
 Game::~Game()
@@ -53,41 +76,8 @@ void Game::run()
 {
   while (window.isOpen())
   {
-    attachControls();
-
     if (isPlaying) snake->move();
 
     renderEngine->render();
-  }
-}
-
-void Game::attachControls()
-{
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Right))
-  {
-    // direction = 1;  // right
-    snake->setDirection(1);
-  }
-
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Left))
-  {
-    // direction = 3;  // left
-    snake->setDirection(3);
-  }
-
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Up))
-  {
-    // direction = 0;  // up
-    snake->setDirection(0);
-  }
-
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Down))
-  {
-    // direction = 2;  // down
-    snake->setDirection(2);
-  }
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Space))
-  {
-    isPlaying = !isPlaying;
   }
 }

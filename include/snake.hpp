@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Window.hpp>
+#include <SFML/Window/Event.hpp>
 #include <vector>
 
 #include "./header.hpp"
@@ -17,13 +18,14 @@ class Snake
   int getDirection() const;
 
   std::vector<Cell> getSegments() const { return segments; }
+  void attachControl(const sf::Event::KeyPressed &keyPressed);
 
  private:
+  Shader &shaderProgram;
   std::vector<Cell> segments;  // stores the segments of the snake
   int direction;               // 0: up, 1: right, 2: down, 3: left
-  Shader &shaderProgram;
-  static std::vector<Cell> generateSegments();
   sf::Clock clock;
   float moveDelay{0.2f};
   float timeSinceLastMove{0.0f};
+  static std::vector<Cell> generateSegments();
 };

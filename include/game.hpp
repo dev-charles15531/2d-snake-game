@@ -14,10 +14,9 @@ class Game
 
  private:
   sf::Window window;
-  Shader* shaderProgram = nullptr;
-  RenderEngine* renderEngine = nullptr;
-  Snake* snake = nullptr;
+  Shader* shaderProgram{nullptr};
+  RenderEngine* renderEngine{nullptr};
+  Snake* snake{nullptr};
   CellSize cellSize;
-  void attachControls();
-  bool isPlaying = true;
+  bool isPlaying{true};
 };

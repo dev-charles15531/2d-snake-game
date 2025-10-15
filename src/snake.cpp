@@ -1,5 +1,7 @@
 #include "../include/snake.hpp"
 
+#include <SFML/Window/Event.hpp>
+
 #include "../include/glad/glad.h"
 
 Snake::Snake(GLuint direction, Shader& shaderProgram)
@@ -23,6 +25,12 @@ std::vector<Cell> Snake::generateSegments()
   return newSegments;
 }
 
+/**
+ * Moves the snake in the current direction.
+ * The snake moves one cell at a time based on the moveDelay.
+ * The head of the snake moves in the specified direction, and each segment
+ * follows the segment in front of it.
+ */
 void Snake::move()
 {
   float deltaTime{clock.restart().asSeconds()};
@@ -59,6 +67,11 @@ void Snake::move()
   }
 }
 
+/**
+ * Sets the direction of the snake.
+ * Prevents the snake from reversing direction directly.
+ * @param dir The new direction (0: up, 1: right, 2: down, 3: left).
+ */
 void Snake::setDirection(int dir)
 {
   // Prevent the snake from reversing
@@ -66,5 +79,31 @@ void Snake::setDirection(int dir)
       (direction == 3 && dir != 1))
   {
     direction = dir;
+  }
+}
+
+/**
+ * Attaches keyboard controls to change the snake's direction.
+ * Maps arrow keys to corresponding directions.
+ * @param keyPressed The key press event to handle.
+ */
+void Snake::attachControl(const sf::Event::KeyPressed& keyPressed)
+{
+  switch (keyPressed.scancode)
+  {
+    case sf::Keyboard::Scan::Right:
+      setDirection(1);
+      break;
+    case sf::Keyboard::Scan::Left:
+      setDirection(3);
+      break;
+    case sf::Keyboard::Scan::Up:
+      setDirection(0);
+      break;
+    case sf::Keyboard::Scan::Down:
+      setDirection(2);
+      break;
+    default:
+      break;
   }
 }
