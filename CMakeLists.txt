@@ -18,6 +18,8 @@ set(SOURCES
     src/snake.cpp
     src/render_engine.cpp
     src/game.cpp
+    src/food.cpp
+    src/big_food.cpp
 )
 
 # Add glad as a static library from source

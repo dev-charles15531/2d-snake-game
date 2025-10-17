@@ -2,15 +2,14 @@
 
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Window.hpp>
-#include <iostream>
 #include <vector>
 
 #include "../include/glad/glad.h"
 #include "../include/glm/gtc/type_ptr.hpp"
 
-RenderEngine::RenderEngine(sf::Window& window, Snake& snake, Shader& shaderProgram, CellSize& cellSize,
+RenderEngine::RenderEngine(sf::Window& window, Snake& snake, Shader& shaderProgram, Food& food, CellSize& cellSize,
                            ScreenSize& screenSize)
-    : window(window), snake(snake), shaderProgram(shaderProgram), cellSize(cellSize), screenSize(screenSize)
+    : window(window), snake(snake), shaderProgram(shaderProgram), food(food), cellSize(cellSize), screenSize(screenSize)
 {
   setupQuad();
   setupCoordinates();
@@ -99,23 +98,14 @@ void RenderEngine::render()
   // Clear the screen
   clearScreen();
 
-  shaderProgram.use();
-  glBindVertexArray(VAO);
+  // Draw the snake
+  snake.draw(VAO, cellSize);
 
-  GLint modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
-  if (modelLoc == -1) std::cerr << "Warning: 'model' uniform not found in shader\n";
+  // Draw the food
+  food.draw(VAO, cellSize);
 
-  for (const auto& segment : snake.getSegments())
-  {
-    glm::mat4 model{glm::mat4(1.0f)};
-    model = glm::translate(model, glm::vec3(segment.x * cellSize.width, segment.y * cellSize.height, 0.0f));
-    model = glm::scale(model, glm::vec3(cellSize.width, cellSize.height, 1.0f));
-
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-  }
-
-  glBindVertexArray(0);
+  // Draw big food if available
+  if (bigFood.has_value() && bigFood->get().isActive) bigFood->get().draw(VAO, cellSize);
 
   window.display();
 }
@@ -161,3 +151,5 @@ void RenderEngine::dispatchEvent(const sf::Event& event)
     listener(event);
   }
 }
+
+void RenderEngine::setBigFood(std::optional<std::reference_wrapper<BigFood>> bigFoodRef) { bigFood = bigFoodRef; }

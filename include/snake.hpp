@@ -10,15 +10,18 @@
 class Snake
 {
  public:
-  Snake(GLuint direction, Shader &);
+  Snake(Shader &, int cellUnitSize);
   void move();
   void setDirection(int dir);
   std::vector<Cell> getBody() const;
-  Cell getHead() const;
+  Cell getHead() const { return segments.front(); }
   int getDirection() const;
 
   std::vector<Cell> getSegments() const { return segments; }
   void attachControl(const sf::Event::KeyPressed &keyPressed);
+  void draw(const GLuint &VAO, const CellSize &cellSize);
+  bool isEating(const std::vector<Cell> &foodPosition);
+  void grow() { segments.push_back(segments.back()); }
 
  private:
   Shader &shaderProgram;
@@ -27,5 +30,5 @@ class Snake
   sf::Clock clock;
   float moveDelay{0.2f};
   float timeSinceLastMove{0.0f};
-  static std::vector<Cell> generateSegments();
+  static std::vector<Cell> generateSegments(const int &cUnitSize);
 };

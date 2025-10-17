@@ -1,28 +1,64 @@
 #include "../include/snake.hpp"
 
 #include <SFML/Window/Event.hpp>
+#include <iostream>
+#include <random>
 
 #include "../include/glad/glad.h"
+#include "../include/glm/gtc/type_ptr.hpp"
 
-Snake::Snake(GLuint direction, Shader& shaderProgram)
-    : direction(direction), shaderProgram(shaderProgram), segments(generateSegments())
+Snake::Snake(Shader& shaderProgram, int cellUnitSize)
+    : shaderProgram(shaderProgram), segments(generateSegments(cellUnitSize)), direction(1)
 {
 }
 
 /**
- * Generates the initial segments of the snake.
+ * Generates initial segments for the snake.
  * The snake starts with 3 segments positioned horizontally.
+ * @param cUnitSize The size of the grid in which the snake is placed.
  * @return A vector of Cell representing the initial segments of the snake.
  */
-std::vector<Cell> Snake::generateSegments()
+std::vector<Cell> Snake::generateSegments(const int& cUnitSize)
 {
+  static std::mt19937 gen(std::random_device{}());
+  std::uniform_int_distribution<int> distX(0, cUnitSize - 3);
+  std::uniform_int_distribution<int> distY(0, cUnitSize - 1);
+
+  int rN = distX(gen);
+  int rN1 = distY(gen);
+
   std::vector<Cell> newSegments;
-  for (int i{0}; i < 3; ++i)
-  {
-    newSegments.push_back({5 + i, 10});
-  }
+
+  for (int i{0}; i < 3; ++i) newSegments.push_back({rN - i, rN1});
 
   return newSegments;
+}
+
+/**
+ * Draws the snake on the screen using OpenGL.
+ * Each segment of the snake is drawn as a scaled and translated quad.
+ * @param VAO The Vertex Array Object for the quad.
+ * @param cellSize The size of each cell in the grid.
+ */
+void Snake::draw(const GLuint& VAO, const CellSize& cellSize)
+{
+  shaderProgram.use();
+  glBindVertexArray(VAO);
+
+  GLint modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
+  if (modelLoc == -1) std::cerr << "Warning: 'model' uniform not found in shader\n";
+
+  for (const auto& segment : getSegments())
+  {
+    glm::mat4 model{glm::mat4(1.0f)};
+    model = glm::translate(model, glm::vec3(segment.x * cellSize.width, segment.y * cellSize.height, 0.0f));
+    model = glm::scale(model, glm::vec3(cellSize.width, cellSize.height, 1.0f));
+
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+  }
+
+  glBindVertexArray(0);
 }
 
 /**
@@ -106,4 +142,18 @@ void Snake::attachControl(const sf::Event::KeyPressed& keyPressed)
     default:
       break;
   }
+}
+
+/**
+ * Checks if the snake's head is at the same position as the food.
+ * @param foodPosition The position of the food.
+ * @return True if the snake is eating the food, false otherwise.
+ */
+bool Snake::isEating(const std::vector<Cell>& foodPosition)
+{
+  for (const auto& foodCell : foodPosition)
+  {
+    if (getHead().x == foodCell.x && getHead().y == foodCell.y) return true;
+  }
+  return false;
 }

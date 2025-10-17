@@ -3,6 +3,7 @@
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/WindowEnums.hpp>
 #include <iostream>
+#include <memory>
 
 #include "../include/glad/glad.h"
 
@@ -38,25 +39,26 @@ Game::Game()
     exit(1);
   }
 
-  shaderProgram = new Shader("../src/shaders/vertex.glsl", "../src/shaders/fragment.glsl");
-  snake = new Snake(0, *shaderProgram);
-  renderEngine = new RenderEngine(window, *snake, *shaderProgram, cellSize, screenSize);
+  shaderProgram = std::make_unique<Shader>("../src/shaders/vertex.glsl", "../src/shaders/fragment.glsl");
+  snake = std::make_unique<Snake>(*shaderProgram, GRID_WIDTH);
+  food = std::make_unique<Food>(*shaderProgram, GRID_WIDTH);
+  renderEngine = std::make_unique<RenderEngine>(window, *snake, *shaderProgram, *food, cellSize,
+                                                screenSize);  // Attach event listener for controls
 
-  // Attach event listener for controls
   renderEngine->addEventListener(
       [this](const sf::Event& event)
       {
         if (event.is<sf::Event::KeyPressed>())
         {
+          const auto* keyPressed{event.getIf<sf::Event::KeyPressed>()};
           if (isPlaying)
           {
             // attach control to snake
-            const auto* keyPressed{event.getIf<sf::Event::KeyPressed>()};
             snake->attachControl(*keyPressed);
           }
 
           // toggle play/pause on space key
-          if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Space))
+          if (keyPressed->scancode == sf::Keyboard::Scan::Space)
           {
             isPlaying = !isPlaying;
             std::cout << (isPlaying ? "▶️  Playing\n" : "⏸️  Paused\n");
@@ -65,18 +67,35 @@ Game::Game()
       });
 }
 
-Game::~Game()
-{
-  delete shaderProgram;
-  delete snake;
-  delete renderEngine;
-}
-
 void Game::run()
 {
   while (window.isOpen())
   {
     if (isPlaying) snake->move();
+
+    // Check if the snake has eaten the food
+    if (snake->isEating(food->getPosition()))
+    {
+      snake->grow();
+      food->respawn();
+
+      // spawn big food after eating every x food
+      // TODO: never span big food in position of normal food
+      if (food->getRespawnCounter() % 2 == 0 && food->getRespawnCounter())
+      {
+        std::cout << "Big Food Spawned!\n";
+        bigFood = std::make_unique<BigFood>(*shaderProgram, food->getCellUnitSize());
+        renderEngine->setBigFood(*bigFood);
+        bigFood->isActive = true;
+      }
+    }
+
+    // check if snake has eaten big food
+    else if (bigFood && bigFood->isActive && snake->isEating(bigFood->getPosition()))
+    {
+      snake->grow();
+      bigFood->isActive = false;
+    }
 
     renderEngine->render();
   }

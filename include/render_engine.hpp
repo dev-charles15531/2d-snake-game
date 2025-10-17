@@ -6,6 +6,8 @@
 #include <vector>
 
 #include "./glad/glad.h"
+#include "big_food.hpp"
+#include "food.hpp"
 #include "header.hpp"
 #include "shader.hpp"
 #include "snake.hpp"
@@ -15,7 +17,8 @@ class RenderEngine
  public:
   using EventCallback = std::function<void(const sf::Event&)>;  // Event listener callback type
 
-  RenderEngine(sf::Window& window, Snake& snake, Shader& shaderProgram, CellSize& cellSize, ScreenSize& screenSize);
+  RenderEngine(sf::Window& window, Snake& snake, Shader& shaderProgram, Food& food, CellSize& cellSize,
+               ScreenSize& screenSize);
   ~RenderEngine();
   void clearScreen();
   void render();
@@ -24,9 +27,15 @@ class RenderEngine
   sf::Window& getWindow() const { return window; }
   void addEventListener(const EventCallback& event);
 
+  void setBigFood(std::optional<std::reference_wrapper<BigFood>> bigFoodRef);
+
+  GLuint getVAO() const { return VAO; }
+
  private:
   sf::Window& window;
   Snake& snake;
+  Food& food;
+  std::optional<std::reference_wrapper<BigFood>> bigFood;
   Shader& shaderProgram;
   CellSize& cellSize;
   std::pair<GLuint, GLuint>& screenSize;
