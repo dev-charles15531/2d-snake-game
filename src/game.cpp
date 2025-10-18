@@ -71,7 +71,11 @@ void Game::run()
 {
   while (window.isOpen())
   {
+    // start moving the snake
     if (isPlaying) snake->move();
+
+    // timer for big food if available
+    if (bigFood && bigFood->isActive) bigFood->startCounting();
 
     // Check if the snake has eaten the food
     if (snake->isEating(food->getPosition()))
@@ -80,7 +84,7 @@ void Game::run()
       food->respawn();
 
       // spawn big food after eating every x food
-      // TODO: never span big food in position of normal food
+      // TODO: never spawn big food in position of normal food
       if (food->getRespawnCounter() % 2 == 0 && food->getRespawnCounter())
       {
         std::cout << "Big Food Spawned!\n";
