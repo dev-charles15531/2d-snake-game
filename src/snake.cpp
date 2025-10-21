@@ -6,23 +6,25 @@
 
 #include "../include/glad/glad.h"
 #include "../include/glm/gtc/type_ptr.hpp"
+#include "../include/render_engine.hpp"
 
-Snake::Snake(Shader& shaderProgram, int cellUnitSize)
-    : shaderProgram(shaderProgram), segments(generateSegments(cellUnitSize)), direction(1)
+Snake::Snake(Shader& shaderProgram, const GridInfo& gridInfo)
+    : shaderProgram(shaderProgram), segments(generateSegments()), direction(1), gridInfo(gridInfo)
 {
 }
 
 /**
  * Generates initial segments for the snake.
  * The snake starts with 3 segments positioned horizontally.
- * @param cUnitSize The size of the grid in which the snake is placed.
  * @return A vector of Cell representing the initial segments of the snake.
  */
-std::vector<Cell> Snake::generateSegments(const int& cUnitSize)
+std::vector<Cell> Snake::generateSegments()
 {
+  auto [xMax, yMax] = gridInfo.getGridSizeI();
+
   static std::mt19937 gen(std::random_device{}());
-  std::uniform_int_distribution<int> distX(0, cUnitSize - 3);
-  std::uniform_int_distribution<int> distY(0, cUnitSize - 1);
+  std::uniform_int_distribution<int> distX(0, xMax - 3);
+  std::uniform_int_distribution<int> distY(0, yMax - 1);
 
   int rN = distX(gen);
   int rN1 = distY(gen);
@@ -38,9 +40,8 @@ std::vector<Cell> Snake::generateSegments(const int& cUnitSize)
  * Draws the snake on the screen using OpenGL.
  * Each segment of the snake is drawn as a scaled and translated quad.
  * @param VAO The Vertex Array Object for the quad.
- * @param cellSize The size of each cell in the grid.
  */
-void Snake::draw(const GLuint& VAO, const CellSize& cellSize)
+void Snake::draw(const GLuint& VAO) const
 {
   shaderProgram.use();
   glBindVertexArray(VAO);
@@ -50,14 +51,17 @@ void Snake::draw(const GLuint& VAO, const CellSize& cellSize)
 
   for (const auto& segment : getSegments())
   {
-    glm::mat4 model{glm::mat4(1.0f)};
-    model = glm::translate(model, glm::vec3(segment.x * cellSize.width, segment.y * cellSize.height, 0.0f));
-    model = glm::scale(model, glm::vec3(cellSize.width, cellSize.height, 1.0f));
+    glm::mat4 model{1.0f};
+
+    // Place each segment directly at its grid coordinate
+    model = glm::translate(model, glm::vec3(segment.x - 0.5f, segment.y - 0.5f, 0.0f));
+
+    // Scale each cell to 1.0 unit (each grid cell is 1 world unit)
+    model = glm::scale(model, scaleFactor * glm::vec3(1.0f));
 
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
   }
-
   glBindVertexArray(0);
 }
 
@@ -69,18 +73,17 @@ void Snake::draw(const GLuint& VAO, const CellSize& cellSize)
  */
 void Snake::move()
 {
-  float deltaTime{clock.restart().asSeconds()};
-  timeSinceLastMove += deltaTime;
+  float deltaTime = clock.getElapsedTime().asSeconds();
 
   // Move the snake only if enough time has passed
-  if (timeSinceLastMove >= moveDelay)
+  if (deltaTime >= moveDelay)
   {
-    for (size_t i{segments.size() - 1}; i > 0; --i)
-    {
-      segments[i] = segments[i - 1];
-    }
+    clock.restart();
 
-    // Move the head
+    // move body
+    for (size_t i = segments.size() - 1; i > 0; --i) segments[i] = segments[i - 1];
+
+    // move head    // Move the head
     switch (direction)
     {
       case 0:
@@ -98,15 +101,66 @@ void Snake::move()
       default:
         break;
     }
-
-    timeSinceLastMove = 0.0f;
   }
+}
+
+/**
+ * Moves the snake, and eat food it comes contact with.
+ * @param renderEngine Reference to the current running render engine.
+ * @param food Reference to food instance.
+ * @param bigFood Reference to big food instance.
+ * @return 1 if collision happened during the course of snake's movement,
+ *         0 if movement and eating is happening without collision.
+ */
+int Snake::moveAndEat(RenderEngine& renderEngine, Food& food, std::unique_ptr<BigFood>& bigFood)
+{
+  // start moving the snake
+  move();
+
+  // Check for collision
+  if (isCollided())
+  {
+    return 1;
+  }
+
+  // allow for snake movement to wrap around edges
+  mirrorEdges();
+
+  // timer for big food if available
+  if (bigFood && bigFood->isActive) bigFood->startCounting();
+
+  // Check if the snake has eaten the food
+  if (isEating(food.getPosition()))
+  {
+    // grow snake and spawn new food
+    grow();
+    food.respawn();
+
+    // spawn big food after eating every x food
+    // TODO: never spawn big food in position of normal food
+    if (food.getRespawnCounter() % 2 == 0 && food.getRespawnCounter())
+    {
+      std::cout << "Big Food Spawned!\n";
+      bigFood = std::make_unique<BigFood>(shaderProgram, renderEngine.getGridInfo(), renderEngine.getScreenSize());
+      bigFood->isActive = true;
+      renderEngine.setBigFood(bigFood.get());
+    }
+  }
+
+  // check if snake has eaten big food
+  else if (bigFood && bigFood->isActive && isEating(bigFood->getPosition()))
+  {
+    grow();
+    bigFood->isActive = false;
+  }
+
+  return 0;
 }
 
 /**
  * Sets the direction of the snake.
  * Prevents the snake from reversing direction directly.
- * @param dir The new direction (0: up, 1: right, 2: down, 3: left).
+ * @param dir The new direction (0: down, 1: right, 2: up, 3: left).
  */
 void Snake::setDirection(int dir)
 {
@@ -134,10 +188,10 @@ void Snake::attachControl(const sf::Event::KeyPressed& keyPressed)
       setDirection(3);
       break;
     case sf::Keyboard::Scan::Up:
-      setDirection(0);
+      setDirection(2);
       break;
     case sf::Keyboard::Scan::Down:
-      setDirection(2);
+      setDirection(0);
       break;
     default:
       break;
@@ -149,11 +203,74 @@ void Snake::attachControl(const sf::Event::KeyPressed& keyPressed)
  * @param foodPosition The position of the food.
  * @return True if the snake is eating the food, false otherwise.
  */
-bool Snake::isEating(const std::vector<Cell>& foodPosition)
+bool Snake::isEating(const std::vector<Cell>& foodPosition) const
 {
+  const auto& head = getHead();
+  std::cout << "[isEating] Head: (" << head.x << ", " << head.y << ")\n";
+
   for (const auto& foodCell : foodPosition)
   {
-    if (getHead().x == foodCell.x && getHead().y == foodCell.y) return true;
+    std::cout << "  Food: (" << foodCell.x << ", " << foodCell.y << ")\n";
+    if (head.x == foodCell.x && head.y == foodCell.y)
+    {
+      std::cout << "  -> Match found!\n";
+      return true;
+    }
   }
+  return false;
+}
+
+/**
+ * Set the head position of the snake
+ * @param cell The cell position of the new snake head
+ */
+void Snake::setHead(Cell cell)
+{
+  if (!segments.empty())
+  {
+    segments.front() = cell;
+  }
+}
+
+/**
+ * Wrap snake's movement aroun the edges such that;
+ * if the snake leaves from the left edge of the screen,
+ * it appears back from the right. same apply for all sides.
+ */
+void Snake::mirrorEdges()
+{
+  auto head = getHead();
+  auto [xMax, yMax] = gridInfo.getGridSizeI();
+
+  if (head.x < 0)
+    head.x = xMax;
+  else if (head.x >= xMax + 0.5)
+    head.x = 0;
+
+  if (head.y < 0)
+    head.y = yMax;
+  else if (head.y >= yMax + 0.5)
+    head.y = 0;
+
+  setHead(head);
+}
+
+/**
+ * Checks if the snake collided with itself.
+ * @return True if there is collision, and false otherwise.
+ */
+bool Snake::isCollided() const
+{
+  const Cell& snakeHead = getHead();
+
+  for (auto it = segments.begin() + 1; it != segments.end(); ++it)
+  {
+    if (snakeHead.x == it->x && snakeHead.y == it->y)
+    {
+      std::cout << "Collision detected\n";
+      return true;
+    }
+  }
+
   return false;
 }

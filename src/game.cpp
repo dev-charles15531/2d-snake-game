@@ -4,6 +4,7 @@
 #include <SFML/Window/WindowEnums.hpp>
 #include <iostream>
 #include <memory>
+#include <utility>
 
 #include "../include/glad/glad.h"
 
@@ -20,15 +21,12 @@ Game::Game()
   sf::VideoMode desktopMode{sf::VideoMode::getDesktopMode()};
   unsigned int screenWidth{desktopMode.size.x / 2};
   unsigned int screenHeight{desktopMode.size.y / 2};
-  std::pair<GLuint, GLuint> screenSize{screenWidth, screenHeight};
+  screenSize = {screenWidth, screenHeight};
 
   desktopMode.size.x = screenWidth;
   desktopMode.size.y = screenHeight;
 
-  const int GRID_WIDTH{80};
-  const int GRID_HEIGHT{80};
-  unsigned int cellUnit{std::min(screenWidth / GRID_WIDTH, screenHeight / GRID_HEIGHT)};
-  cellSize = {static_cast<float>(cellUnit), static_cast<float>(cellUnit)};
+  GRID_SIZE = 80;  // A square matrix for grid
 
   window.create(desktopMode, "SNAKE GAME", sf::Style::Default, sf::State::Windowed, settings);
   window.setFramerateLimit(60);
@@ -40,11 +38,11 @@ Game::Game()
   }
 
   shaderProgram = std::make_unique<Shader>("../src/shaders/vertex.glsl", "../src/shaders/fragment.glsl");
-  snake = std::make_unique<Snake>(*shaderProgram, GRID_WIDTH);
-  food = std::make_unique<Food>(*shaderProgram, GRID_WIDTH);
-  renderEngine = std::make_unique<RenderEngine>(window, *snake, *shaderProgram, *food, cellSize,
-                                                screenSize);  // Attach event listener for controls
+  snake = std::make_unique<Snake>(*shaderProgram, GridInfo(GRID_SIZE, screenSize));
+  food = std::make_unique<Food>(*shaderProgram, GridInfo(GRID_SIZE, screenSize), screenSize);
+  renderEngine = std::make_unique<RenderEngine>(window, *snake, *shaderProgram, *food, screenSize, GRID_SIZE);
 
+  // Attach event listener for controls
   renderEngine->addEventListener(
       [this](const sf::Event& event)
       {
@@ -67,38 +65,22 @@ Game::Game()
       });
 }
 
+///// RUN THE GAME /////
 void Game::run()
 {
   while (window.isOpen())
   {
     // start moving the snake
-    if (isPlaying) snake->move();
-
-    // timer for big food if available
-    if (bigFood && bigFood->isActive) bigFood->startCounting();
-
-    // Check if the snake has eaten the food
-    if (snake->isEating(food->getPosition()))
+    if (isPlaying)
     {
-      snake->grow();
-      food->respawn();
-
-      // spawn big food after eating every x food
-      // TODO: never spawn big food in position of normal food
-      if (food->getRespawnCounter() % 2 == 0 && food->getRespawnCounter())
+      if (snake->moveAndEat(*renderEngine, *food, bigFood) == 1)
       {
-        std::cout << "Big Food Spawned!\n";
-        bigFood = std::make_unique<BigFood>(*shaderProgram, food->getCellUnitSize());
-        renderEngine->setBigFood(*bigFood);
-        bigFood->isActive = true;
+        std::cout << "Game Over!\n";
+        // Handle game over logic:
+        // stop game loop, reset, etc.
+        // return;
+        isPlaying = false;
       }
-    }
-
-    // check if snake has eaten big food
-    else if (bigFood && bigFood->isActive && snake->isEating(bigFood->getPosition()))
-    {
-      snake->grow();
-      bigFood->isActive = false;
     }
 
     renderEngine->render();

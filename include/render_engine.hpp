@@ -1,4 +1,5 @@
 #pragma once
+
 #include <SFML/Window.hpp>
 #include <SFML/Window/Window.hpp>
 #include <functional>
@@ -17,37 +18,37 @@ class RenderEngine
  public:
   using EventCallback = std::function<void(const sf::Event&)>;  // Event listener callback type
 
-  RenderEngine(sf::Window& window, Snake& snake, Shader& shaderProgram, Food& food, CellSize& cellSize,
-               ScreenSize& screenSize);
+  RenderEngine(sf::Window& window, Snake& snake, Shader& shaderProgram, Food& food, ScreenSize& screenSize,
+               GLuint gridSize);
   ~RenderEngine();
-  void clearScreen();
+  void clearScreen() const;
+  void terminate() const;
   void render();
-  void terminate();
-
-  sf::Window& getWindow() const { return window; }
   void addEventListener(const EventCallback& event);
 
-  void setBigFood(std::optional<std::reference_wrapper<BigFood>> bigFoodRef);
+  const GLuint& getVAO() const { return VAO; }
+  sf::Window& getWindow() const { return window; }
+  const std::pair<GLuint, GLuint>& getScreenSize() const { return screenSize; }
+  const GridInfo& getGridInfo() const { return gridInfo; }
 
-  GLuint getVAO() const { return VAO; }
+  void setBigFood(BigFood* ptr) { bigFood = ptr; }
 
  private:
   sf::Window& window;
   Snake& snake;
   Food& food;
-  std::optional<std::reference_wrapper<BigFood>> bigFood;
+  BigFood* bigFood = nullptr;
   Shader& shaderProgram;
-  CellSize& cellSize;
   std::pair<GLuint, GLuint>& screenSize;
+  const GridInfo gridInfo;
 
-  // OpenGL objects
+  // OpenGL stuffs
   GLuint VBO, VAO, EBO;
-  std::pair<GLuint, GLuint> init();
   void setupQuad();
-  void pollEvents();
-  void setupCoordinates();
+  void pollEvents() const;
+  void setupCoordinates() const;
 
   // Event callbacks
   std::vector<EventCallback> listeners;
-  void dispatchEvent(const sf::Event& event);
+  void dispatchEvent(const sf::Event& event) const;
 };

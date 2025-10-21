@@ -1,17 +1,21 @@
 #pragma once
 
 #include <SFML/System/Clock.hpp>
+// #include <utility>
 
 #include "food.hpp"
+#include "header.hpp"
 
 class BigFood : public Food
 {
  public:
-  BigFood(Shader& shader, int cellUnitSize);
-  bool isActive{false};
+  BigFood(Shader& shader, const GridInfo gridInfo, std::pair<GLuint, GLuint> screenSize);
+  bool isActive = false;
   void startCounting();
 
  private:
-  float timeToLive{10.0f};
   sf::Clock clock;
+  float timeToLive = 15.0f;
+  bool isCounting = false;
+  float lastTime = 0.0f;
 };

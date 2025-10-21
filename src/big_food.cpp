@@ -2,17 +2,36 @@
 
 #include "../include/shader.hpp"
 
-BigFood::BigFood(Shader &shader, int cellUnitSize) : Food(shader, cellUnitSize, true) {}
+BigFood::BigFood(Shader& shader, const GridInfo gridInfo, std::pair<GLuint, GLuint> screenSize)
+    : Food(shader, gridInfo, screenSize, true)
+{
+}
 
+/**
+ * Start counting when the currently active big food should disappear
+ */
 void BigFood::startCounting()
 {
-  float deltaTime{clock.restart().asSeconds()};
+  if (!isCounting)
+  {
+    // Start the countdown
+    clock.restart();
+    isCounting = true;
+    lastTime = 0.0f;
+    return;
+  }
+
+  // Get total time since start
+  float currentTime = clock.getElapsedTime().asSeconds();
+  float deltaTime = currentTime - lastTime;
+  lastTime = currentTime;
+
   timeToLive -= deltaTime;
 
-  if (timeToLive <= 0)
+  if (timeToLive <= 0.0f)
   {
     isActive = false;
-
-    timeToLive = 10.0f;
+    isCounting = false;
+    timeToLive = 15.0f;  // reset for next spawn
   }
 }

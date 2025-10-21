@@ -15,11 +15,16 @@ class Game
 
  private:
   sf::Window window;
+  CellSize cellSize;
+  std::pair<GLuint, GLuint> screenSize;
+
   std::unique_ptr<Shader> shaderProgram;
   std::unique_ptr<Snake> snake;
   std::unique_ptr<Food> food;
   std::unique_ptr<BigFood> bigFood;
   std::unique_ptr<RenderEngine> renderEngine;
-  CellSize cellSize;
+
   bool isPlaying{true};
+
+  int GRID_SIZE;
 };
