@@ -10,6 +10,17 @@ set(SFML_STATIC_LIBRARIES TRUE)
 # Include directories (for glad and KHR)
 include_directories(include)
 
+# Add ImGui sources
+set(IMGUI_SOURCES
+    include/imgui/imgui.cpp
+    include/imgui/imgui_demo.cpp
+    include/imgui/imgui_draw.cpp
+    include/imgui/imgui_tables.cpp
+    include/imgui/imgui_widgets.cpp
+    include/imgui/imgui_impl_opengl3.cpp
+    include/imgui/imgui_impl_sfml.cpp
+)
+
 # Add source files
 set(SOURCES
     src/main.cpp
@@ -20,6 +31,7 @@ set(SOURCES
     src/game.cpp
     src/food.cpp
     src/big_food.cpp
+    ${IMGUI_SOURCES}
 )
 
 # Add glad as a static library from source
@@ -38,4 +50,3 @@ target_link_libraries(main
     SFML::System
     GL  # For OpenGL on Linux
 )
-

@@ -1,5 +1,6 @@
 #include "../include/render_engine.hpp"
 
+#include <SFML/System/Clock.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Window.hpp>
 #include <utility>
@@ -7,6 +8,9 @@
 
 #include "../include/glad/glad.h"
 #include "../include/glm/gtc/type_ptr.hpp"
+#include "../include/imgui/imgui.h"
+#include "../include/imgui/imgui_impl_opengl3.h"
+#include "../include/imgui/imgui_impl_sfml.h"
 
 RenderEngine::RenderEngine(sf::Window& window, Snake& snake, Shader& shaderProgram, Food& food, ScreenSize& screenSize,
                            GLuint gridSize)
@@ -19,6 +23,19 @@ RenderEngine::RenderEngine(sf::Window& window, Snake& snake, Shader& shaderProgr
 {
   setupQuad();
   setupCoordinates();
+
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO& io = ImGui::GetIO();
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+  // Setup style
+  ImGui::StyleColorsDark();
+  // or: ImGui::StyleColorsLight();
+
+  // Initialize backends
+  ImGui::SFML::Init(window);
+  ImGui_ImplOpenGL3_Init("#version 440");
 }
 
 RenderEngine::~RenderEngine()
@@ -79,7 +96,7 @@ void RenderEngine::setupCoordinates() const
   shaderProgram.use();
 
   glm::mat4 view{1.0f};
-  auto [xMax, yMax] = gridInfo.getGridSizeF();
+  auto [xMax, yMax]{gridInfo.getGridSizeF()};
   glm::mat4 projection{glm::ortho(0.0f, xMax,  // left, right
                                   yMax, 0.0f,  // top, bottom (flip Y)
                                   -1.0f, 1.0f)};
@@ -100,23 +117,54 @@ void RenderEngine::clearScreen() const
 /**
  * Rendering engine
  */
+
 void RenderEngine::render()
 {
-  // Handle window events
+  // Poll SFML events once per frame
   pollEvents();
 
-  // Clear the screen
+  // Update ImGui and delta time
+  sf::Time dt = clock.restart();
+
+  ImGui::SFML::Update(window, dt);
+  ImGui_ImplOpenGL3_NewFrame();
+
+  // Game Stats window
+  ImGui::Begin("Game Stats");
+  ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+  ImGui::Text("Snake Length: %zu", snake.getSegments().size());
+  ImGui::End();
+
+  // Debug window
+  ImGui::Begin("Snake Game Debug");
+  ImGui::Text("Frame time: %.3f ms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+  ImGui::Separator();
+  ImGui::Text("Snake Head: (%d, %d)", snake.getHead().x, snake.getHead().y);
+  ImGui::Text("Score: %d", food.getRespawnCounter());
+  ImGui::Separator();
+  if (ImGui::Button("Restart Game"))
+  {
+    // TODO: Reset game logic
+  }
+  ImGui::End();
+
+  // Optional: ImGui demo window
+  // ImGui::ShowDemoWindow();
+
+  // --- Render Phase ---
+  ImGui::Render();
+
   clearScreen();
 
-  // Draw the snake
+  // Draw the snake and food using OpenGL
   snake.draw(VAO);
-
-  // Draw the food
   food.draw(VAO);
-
-  // Draw big food if available
   if (bigFood && bigFood->isActive) bigFood->draw(VAO);
 
+  // Draw ImGui on top of everything
+  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+  // Swap buffers / display frame
   window.display();
 }
 
@@ -125,6 +173,12 @@ void RenderEngine::render()
  */
 void RenderEngine::terminate() const
 {
+  // clear ImGUI
+  // In cleanup:
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui::SFML::Shutdown();
+  ImGui::DestroyContext();
+
   glDeleteVertexArrays(1, &VAO);
   glDeleteBuffers(1, &VBO);
   glDeleteBuffers(1, &EBO);
@@ -137,6 +191,9 @@ void RenderEngine::pollEvents() const
 {
   while (const std::optional<sf::Event> event{window.pollEvent()})
   {
+    // ImGUI events
+    ImGui::SFML::ProcessEvent(event.value());
+
     if (event->is<sf::Event::Closed>()) window.close();
 
     if (event->is<sf::Event::Resized>())

@@ -22,7 +22,7 @@ struct CellSize
 // Define a type alias for screen size
 using ScreenSize = std::pair<GLuint, GLuint>;
 
-const float scaleFactor = 1.2f;  // adjust to taste
+const float scaleFactor{1.2f};  // adjust to taste
 
 struct GridInfo
 {
@@ -34,10 +34,8 @@ struct GridInfo
   // Computes actual X and Y grid limits depending on aspect ratio
   std::pair<GLuint, GLuint> getGridSizeI() const
   {
-    float aspectRatio =
-        static_cast<float>(screenSize.first) / static_cast<float>(screenSize.second == 0 ? 1.0f : screenSize.second);
-
     int xMax, yMax;
+    GLfloat aspectRatio{getAspectRatio()};
 
     if (aspectRatio >= 1.0f)
     {
@@ -55,10 +53,8 @@ struct GridInfo
 
   std::pair<GLfloat, GLfloat> getGridSizeF() const
   {
-    float aspectRatio =
-        static_cast<float>(screenSize.first) / static_cast<float>(screenSize.second == 0 ? 1.0f : screenSize.second);
-
     GLfloat xMax, yMax;
+    GLfloat aspectRatio{getAspectRatio()};
 
     if (aspectRatio >= 1.0f)
     {

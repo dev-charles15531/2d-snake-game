@@ -20,7 +20,7 @@ Snake::Snake(Shader& shaderProgram, const GridInfo& gridInfo)
  */
 std::vector<Cell> Snake::generateSegments()
 {
-  auto [xMax, yMax] = gridInfo.getGridSizeI();
+  auto [xMax, yMax]{gridInfo.getGridSizeI()};
 
   static std::mt19937 gen(std::random_device{}());
   std::uniform_int_distribution<int> distX(0, xMax - 3);
@@ -46,7 +46,7 @@ void Snake::draw(const GLuint& VAO) const
   shaderProgram.use();
   glBindVertexArray(VAO);
 
-  GLint modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
+  GLint modelLoc{glGetUniformLocation(shaderProgram.ID, "model")};
   if (modelLoc == -1) std::cerr << "Warning: 'model' uniform not found in shader\n";
 
   for (const auto& segment : getSegments())
@@ -73,7 +73,7 @@ void Snake::draw(const GLuint& VAO) const
  */
 void Snake::move()
 {
-  float deltaTime = clock.getElapsedTime().asSeconds();
+  float deltaTime{clock.getElapsedTime().asSeconds()};
 
   // Move the snake only if enough time has passed
   if (deltaTime >= moveDelay)
@@ -81,7 +81,7 @@ void Snake::move()
     clock.restart();
 
     // move body
-    for (size_t i = segments.size() - 1; i > 0; --i) segments[i] = segments[i - 1];
+    for (size_t i{segments.size() - 1}; i > 0; --i) segments[i] = segments[i - 1];
 
     // move head    // Move the head
     switch (direction)
@@ -205,7 +205,7 @@ void Snake::attachControl(const sf::Event::KeyPressed& keyPressed)
  */
 bool Snake::isEating(const std::vector<Cell>& foodPosition) const
 {
-  const auto& head = getHead();
+  const auto& head{getHead()};
   std::cout << "[isEating] Head: (" << head.x << ", " << head.y << ")\n";
 
   for (const auto& foodCell : foodPosition)
@@ -239,8 +239,8 @@ void Snake::setHead(Cell cell)
  */
 void Snake::mirrorEdges()
 {
-  auto head = getHead();
-  auto [xMax, yMax] = gridInfo.getGridSizeI();
+  auto head{getHead()};
+  auto [xMax, yMax]{gridInfo.getGridSizeI()};
 
   if (head.x < 0)
     head.x = xMax;
@@ -261,9 +261,9 @@ void Snake::mirrorEdges()
  */
 bool Snake::isCollided() const
 {
-  const Cell& snakeHead = getHead();
+  const Cell& snakeHead{getHead()};
 
-  for (auto it = segments.begin() + 1; it != segments.end(); ++it)
+  for (auto it{segments.begin() + 1}; it != segments.end(); ++it)
   {
     if (snakeHead.x == it->x && snakeHead.y == it->y)
     {

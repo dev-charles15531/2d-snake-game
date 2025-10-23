@@ -22,8 +22,8 @@ void BigFood::startCounting()
   }
 
   // Get total time since start
-  float currentTime = clock.getElapsedTime().asSeconds();
-  float deltaTime = currentTime - lastTime;
+  float currentTime{clock.getElapsedTime().asSeconds()};
+  float deltaTime{currentTime - lastTime};
   lastTime = currentTime;
 
   timeToLive -= deltaTime;

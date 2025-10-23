@@ -20,11 +20,11 @@ Food::Food(Shader& shaderProgram, const GridInfo& gridInfo, std::pair<GLuint, GL
  */
 const std::vector<Cell> Food::generatePosition() const
 {
-  auto [xMax, yMax] = gridInfo.getGridSizeI();
+  auto [xMax, yMax]{gridInfo.getGridSizeI()};
 
   static std::mt19937 gen(std::random_device{}());
-  std::uniform_int_distribution<int> distX(0, xMax - 1);
-  std::uniform_int_distribution<int> distY(0, yMax - 1);
+  std::uniform_int_distribution<int> distX(1, xMax - 1);
+  std::uniform_int_distribution<int> distY(1, yMax - 1);
 
   Cell cell{distX(gen), distY(gen)};
   std::cout << "Food spawned at: (" << cell.x << ", " << cell.y << ")\n";
@@ -40,11 +40,11 @@ const std::vector<Cell> Food::generatePosition() const
  */
 const std::vector<Cell> Food::generateBigFoodPosition() const
 {
-  auto [xMax, yMax] = gridInfo.getGridSizeI();
+  auto [xMax, yMax]{gridInfo.getGridSizeI()};
 
   static std::mt19937 gen(std::random_device{}());
-  std::uniform_int_distribution<int> distX(0, xMax - 2);
-  std::uniform_int_distribution<int> distY(0, yMax - 2);
+  std::uniform_int_distribution<int> distX(2, xMax - 2);
+  std::uniform_int_distribution<int> distY(2, yMax - 2);
   int rN = distX(gen);
   int rN1 = distY(gen);
 
@@ -76,7 +76,7 @@ void Food::draw(const GLuint& VAO) const
   shaderProgram.use();
   glBindVertexArray(VAO);
 
-  GLint modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
+  GLint modelLoc{glGetUniformLocation(shaderProgram.ID, "model")};
   if (modelLoc == -1) std::cerr << "Warning: 'model' uniform not found in shader\n";
 
   for (const auto& pos : position)

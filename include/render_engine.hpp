@@ -1,5 +1,6 @@
 #pragma once
 
+#include <SFML/System/Clock.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Window/Window.hpp>
 #include <functional>
@@ -41,6 +42,8 @@ class RenderEngine
   Shader& shaderProgram;
   std::pair<GLuint, GLuint>& screenSize;
   const GridInfo gridInfo;
+
+  sf::Clock clock;
 
   // OpenGL stuffs
   GLuint VBO, VAO, EBO;
