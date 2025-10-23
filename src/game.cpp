@@ -4,11 +4,13 @@
 #include <SFML/Window/WindowEnums.hpp>
 #include <iostream>
 #include <memory>
-#include <utility>
 
 #include "../include/glad/glad.h"
 
 Game::Game()
+    : gridSize(80),  // Square matrix
+      screenSize{sf::VideoMode::getDesktopMode().size.x / 2, sf::VideoMode::getDesktopMode().size.y / 2},
+      gridInfo(gridSize, screenSize)
 {
   // Setup window and OpenGL context
   sf::ContextSettings settings;
@@ -19,14 +21,8 @@ Game::Game()
   settings.attributeFlags = sf::ContextSettings::Core;
 
   sf::VideoMode desktopMode{sf::VideoMode::getDesktopMode()};
-  unsigned int screenWidth{desktopMode.size.x / 2};
-  unsigned int screenHeight{desktopMode.size.y / 2};
-  screenSize = {screenWidth, screenHeight};
-
-  desktopMode.size.x = screenWidth;
-  desktopMode.size.y = screenHeight;
-
-  GRID_SIZE = 80;  // A square matrix for grid
+  desktopMode.size.x = screenSize.first;
+  desktopMode.size.y = screenSize.second;
 
   window.create(desktopMode, "SNAKE GAME", sf::Style::Default, sf::State::Windowed, settings);
   window.setFramerateLimit(60);
@@ -38,9 +34,9 @@ Game::Game()
   }
 
   shaderProgram = std::make_unique<Shader>("../src/shaders/vertex.glsl", "../src/shaders/fragment.glsl");
-  snake = std::make_unique<Snake>(*shaderProgram, GridInfo(GRID_SIZE, screenSize));
-  food = std::make_unique<Food>(*shaderProgram, GridInfo(GRID_SIZE, screenSize), screenSize);
-  renderEngine = std::make_unique<RenderEngine>(window, *snake, *shaderProgram, *food, screenSize, GRID_SIZE);
+  snake = std::make_unique<Snake>(*shaderProgram, gridInfo);
+  food = std::make_unique<Food>(*shaderProgram, gridInfo);
+  renderEngine = std::make_unique<RenderEngine>(window, *snake, *shaderProgram, *food, screenSize, gridInfo);
 
   // Attach event listener for controls
   renderEngine->addEventListener(
@@ -76,9 +72,6 @@ void Game::run()
       if (snake->moveAndEat(*renderEngine, *food, bigFood) == 1)
       {
         std::cout << "Game Over!\n";
-        // Handle game over logic:
-        // stop game loop, reset, etc.
-        // return;
         isPlaying = false;
       }
     }

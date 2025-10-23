@@ -141,7 +141,7 @@ int Snake::moveAndEat(RenderEngine& renderEngine, Food& food, std::unique_ptr<Bi
     if (food.getRespawnCounter() % 2 == 0 && food.getRespawnCounter())
     {
       std::cout << "Big Food Spawned!\n";
-      bigFood = std::make_unique<BigFood>(shaderProgram, renderEngine.getGridInfo(), renderEngine.getScreenSize());
+      bigFood = std::make_unique<BigFood>(shaderProgram, renderEngine.getGridInfo());
       bigFood->isActive = true;
       renderEngine.setBigFood(bigFood.get());
     }

@@ -41,7 +41,7 @@ class Snake
 
  private:
   Shader &shaderProgram;
-  const GridInfo gridInfo;
+  const GridInfo &gridInfo;
   std::vector<Cell> segments;  // stores the segments of the snake
   int direction = 1;           // 0: down, 1: right, 2: up, 3: left
   sf::Clock clock;

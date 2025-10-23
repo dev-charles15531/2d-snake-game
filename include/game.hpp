@@ -4,6 +4,7 @@
 
 #include "big_food.hpp"
 #include "food.hpp"
+#include "header.hpp"
 #include "render_engine.hpp"
 #include "snake.hpp"
 
@@ -16,7 +17,7 @@ class Game
  private:
   sf::Window window;
   CellSize cellSize;
-  std::pair<GLuint, GLuint> screenSize;
+  ScreenSize screenSize;
 
   std::unique_ptr<Shader> shaderProgram;
   std::unique_ptr<Snake> snake;
@@ -26,5 +27,6 @@ class Game
 
   bool isPlaying{true};
 
-  int GRID_SIZE;
+  int gridSize;
+  GridInfo gridInfo;
 };

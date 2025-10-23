@@ -20,10 +20,10 @@ class RenderEngine
   using EventCallback = std::function<void(const sf::Event&)>;  // Event listener callback type
 
   RenderEngine(sf::Window& window, Snake& snake, Shader& shaderProgram, Food& food, ScreenSize& screenSize,
-               GLuint gridSize);
+               GridInfo& gridInfo);
   ~RenderEngine();
   void clearScreen() const;
-  void terminate() const;
+  void terminate();
   void render();
   void addEventListener(const EventCallback& event);
 
@@ -36,19 +36,22 @@ class RenderEngine
 
  private:
   sf::Window& window;
+
+  bool imguiInitialized = false;
+
   Snake& snake;
   Food& food;
   BigFood* bigFood = nullptr;
   Shader& shaderProgram;
   std::pair<GLuint, GLuint>& screenSize;
-  const GridInfo gridInfo;
+  GridInfo& gridInfo;
 
   sf::Clock clock;
 
   // OpenGL stuffs
   GLuint VBO, VAO, EBO;
   void setupQuad();
-  void pollEvents() const;
+  void pollEvents();
   void setupCoordinates() const;
 
   // Event callbacks

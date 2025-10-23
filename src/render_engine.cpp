@@ -3,7 +3,6 @@
 #include <SFML/System/Clock.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Window.hpp>
-#include <utility>
 #include <vector>
 
 #include "../include/glad/glad.h"
@@ -13,13 +12,8 @@
 #include "../include/imgui/imgui_impl_sfml.h"
 
 RenderEngine::RenderEngine(sf::Window& window, Snake& snake, Shader& shaderProgram, Food& food, ScreenSize& screenSize,
-                           GLuint gridSize)
-    : window(window),
-      snake(snake),
-      shaderProgram(shaderProgram),
-      food(food),
-      screenSize(screenSize),
-      gridInfo(gridSize, screenSize)
+                           GridInfo& gridInfo)
+    : window(window), snake(snake), shaderProgram(shaderProgram), food(food), screenSize(screenSize), gridInfo(gridInfo)
 {
   setupQuad();
   setupCoordinates();
@@ -38,11 +32,7 @@ RenderEngine::RenderEngine(sf::Window& window, Snake& snake, Shader& shaderProgr
   ImGui_ImplOpenGL3_Init("#version 440");
 }
 
-RenderEngine::~RenderEngine()
-{
-  terminate();
-  window.close();
-}
+RenderEngine::~RenderEngine() { terminate(); }
 
 /**
  * Sets up a simple quad (square) for rendering.
@@ -90,9 +80,6 @@ void RenderEngine::setupQuad()
  */
 void RenderEngine::setupCoordinates() const
 {
-  GLfloat aspectRatio{static_cast<GLfloat>(screenSize.first) /
-                      static_cast<GLfloat>(screenSize.second == 0 ? 1.0f : screenSize.second)};
-
   shaderProgram.use();
 
   glm::mat4 view{1.0f};
@@ -148,9 +135,6 @@ void RenderEngine::render()
   }
   ImGui::End();
 
-  // Optional: ImGui demo window
-  // ImGui::ShowDemoWindow();
-
   // --- Render Phase ---
   ImGui::Render();
 
@@ -171,14 +155,17 @@ void RenderEngine::render()
 /**
  * Cleans up allocated OpenGL resources.
  */
-void RenderEngine::terminate() const
+void RenderEngine::terminate()
 {
-  // clear ImGUI
-  // In cleanup:
-  ImGui_ImplOpenGL3_Shutdown();
-  ImGui::SFML::Shutdown();
-  ImGui::DestroyContext();
+  if (imguiInitialized)
+  {
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui::SFML::Shutdown();
+    ImGui::DestroyContext();
+    imguiInitialized = false;
+  }
 
+  // Cleanup OpenGL resources
   glDeleteVertexArrays(1, &VAO);
   glDeleteBuffers(1, &VBO);
   glDeleteBuffers(1, &EBO);
@@ -187,17 +174,29 @@ void RenderEngine::terminate() const
 /**
  * Poll events during rendering
  */
-void RenderEngine::pollEvents() const
+void RenderEngine::pollEvents()
 {
   while (const std::optional<sf::Event> event{window.pollEvent()})
   {
     // ImGUI events
     ImGui::SFML::ProcessEvent(event.value());
 
-    if (event->is<sf::Event::Closed>()) window.close();
+    if (event->is<sf::Event::Closed>())
+    {
+      if (imguiInitialized)
+      {
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui::SFML::Shutdown();
+        ImGui::DestroyContext();
+        imguiInitialized = false;
+      }
+
+      window.close();
+    }
 
     if (event->is<sf::Event::Resized>())
     {
+      // gridInfo.updateScreenSize()
       glViewport(0, 0, window.getSize().x, window.getSize().y);
     }
 

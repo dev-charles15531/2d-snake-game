@@ -6,11 +6,10 @@
 #include "../include/glad/glad.h"
 #include "../include/glm/gtc/type_ptr.hpp"
 
-Food::Food(Shader& shaderProgram, const GridInfo& gridInfo, std::pair<GLuint, GLuint>& screenSize, bool isBigFood)
+Food::Food(Shader& shaderProgram, const GridInfo& gridInfo, bool isBigFood)
     : shaderProgram(shaderProgram),
-      position(isBigFood ? generateBigFoodPosition() : generatePosition()),
       gridInfo(gridInfo),
-      screenSize(screenSize)
+      position(isBigFood ? generateBigFoodPosition() : generatePosition())
 {
 }
 
@@ -18,7 +17,7 @@ Food::Food(Shader& shaderProgram, const GridInfo& gridInfo, std::pair<GLuint, GL
  * Generates a random position for the food within the grid.
  * @return A vector of Cells representing the position of the food.
  */
-const std::vector<Cell> Food::generatePosition() const
+std::vector<Cell> Food::generatePosition() const
 {
   auto [xMax, yMax]{gridInfo.getGridSizeI()};
 
@@ -38,7 +37,7 @@ const std::vector<Cell> Food::generatePosition() const
  * Big food occupies a 2x2 area, so the positions are generated accordingly.
  * @return A vector of Cells representing the positions of the big food.
  */
-const std::vector<Cell> Food::generateBigFoodPosition() const
+std::vector<Cell> Food::generateBigFoodPosition() const
 {
   auto [xMax, yMax]{gridInfo.getGridSizeI()};
 
@@ -50,12 +49,6 @@ const std::vector<Cell> Food::generateBigFoodPosition() const
 
   return {{rN, rN1}, {rN + 1, rN1}, {rN, rN1 + 1}, {rN + 1, rN1 + 1}};
 }
-
-/**
- * Returns the current position of the food.
- * @return A Cell vector representing the position of the food.
- */
-const std::vector<Cell>& Food::getPosition() const { return position; }
 
 /**
  * Respawns the food at a new random position within the grid.

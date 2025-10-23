@@ -2,10 +2,7 @@
 
 #include "../include/shader.hpp"
 
-BigFood::BigFood(Shader& shader, const GridInfo gridInfo, std::pair<GLuint, GLuint> screenSize)
-    : Food(shader, gridInfo, screenSize, true)
-{
-}
+BigFood::BigFood(Shader& shader, const GridInfo& gridInfo) : Food(shader, gridInfo, true) {}
 
 /**
  * Start counting when the currently active big food should disappear

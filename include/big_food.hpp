@@ -9,7 +9,7 @@
 class BigFood : public Food
 {
  public:
-  BigFood(Shader& shader, const GridInfo gridInfo, std::pair<GLuint, GLuint> screenSize);
+  BigFood(Shader& shader, const GridInfo& gridInfo);
   bool isActive = false;
   void startCounting();
 

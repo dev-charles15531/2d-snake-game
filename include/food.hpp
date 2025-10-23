@@ -9,20 +9,19 @@
 class Food
 {
  public:
-  Food(Shader &, const GridInfo &gridInfo, std::pair<GLuint, GLuint> &screenSize, bool isBigFood = false);
+  Food(Shader &, const GridInfo &gridInfo, bool isBigFood = false);
 
   void draw(const GLuint &VAO) const;
   void respawn();
 
-  const std::vector<Cell> &getPosition() const;
+  const std::vector<Cell> &getPosition() const { return position; }
   const unsigned int &getRespawnCounter() const { return respawnCounter; }
 
  private:
   Shader &shaderProgram;
-  std::pair<GLuint, GLuint> screenSize;
-  const GridInfo gridInfo;
+  const GridInfo &gridInfo;
   std::vector<Cell> position;  // position of the food, multiple set for big food
-  const std::vector<Cell> generatePosition() const;
-  const std::vector<Cell> generateBigFoodPosition() const;
+  std::vector<Cell> generatePosition() const;
+  std::vector<Cell> generateBigFoodPosition() const;
   unsigned int respawnCounter{0};
 };

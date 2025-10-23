@@ -26,10 +26,10 @@ const float scaleFactor{1.2f};  // adjust to taste
 
 struct GridInfo
 {
-  GLuint baseSize;                 // logical grid size (e.g. 100)
-  std::pair<int, int> screenSize;  // window dimensions (width, height)
+  GLuint baseSize;         // logical grid size
+  ScreenSize& screenSize;  // window dimensions (width, height)
 
-  GridInfo(GLuint gridSize, const std::pair<int, int>& screen) : baseSize(gridSize), screenSize(screen) {}
+  GridInfo(GLuint gridSize, ScreenSize& screen) : baseSize(gridSize), screenSize(screen) {}
 
   // Computes actual X and Y grid limits depending on aspect ratio
   std::pair<GLuint, GLuint> getGridSizeI() const
@@ -77,4 +77,5 @@ struct GridInfo
 
   // Helper for window resizing
   void updateScreenSize(const std::pair<int, int>& newSize) { screenSize = newSize; }
+  void updategridSize(GLuint newSize) { baseSize = newSize; }
 };
