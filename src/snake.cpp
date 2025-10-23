@@ -4,6 +4,7 @@
 #include <iostream>
 #include <random>
 
+#include "../include/game.hpp"
 #include "../include/glad/glad.h"
 #include "../include/glm/gtc/type_ptr.hpp"
 #include "../include/render_engine.hpp"
@@ -23,8 +24,8 @@ std::vector<Cell> Snake::generateSegments()
   auto [xMax, yMax]{gridInfo.getGridSizeI()};
 
   static std::mt19937 gen(std::random_device{}());
-  std::uniform_int_distribution<int> distX(0, xMax - 3);
-  std::uniform_int_distribution<int> distY(0, yMax - 1);
+  std::uniform_int_distribution<int> distX(3, xMax - 3);
+  std::uniform_int_distribution<int> distY(3, yMax - 3);
 
   int rN = distX(gen);
   int rN1 = distY(gen);
@@ -109,10 +110,12 @@ void Snake::move()
  * @param renderEngine Reference to the current running render engine.
  * @param food Reference to food instance.
  * @param bigFood Reference to big food instance.
- * @return 1 if collision happened during the course of snake's movement,
- *         0 if movement and eating is happening without collision.
+ * @return 0 if movement and eating is happening without collision.
+ *         1 if collision happened during the course of snake's movement,
+ *         2 if snake just ate normal food,
+ *         3 if snake just ate big food.
  */
-int Snake::moveAndEat(RenderEngine& renderEngine, Food& food, std::unique_ptr<BigFood>& bigFood)
+GLuint Snake::moveAndEat(RenderEngine& renderEngine, Food& food, std::unique_ptr<BigFood>& bigFood)
 {
   // start moving the snake
   move();
@@ -127,7 +130,7 @@ int Snake::moveAndEat(RenderEngine& renderEngine, Food& food, std::unique_ptr<Bi
   mirrorEdges();
 
   // timer for big food if available
-  if (bigFood && bigFood->isActive) bigFood->startCounting();
+  if (bigFood && bigFood->isActive) bigFood->startCounting(moveDelay);
 
   // Check if the snake has eaten the food
   if (isEating(food.getPosition()))
@@ -138,13 +141,15 @@ int Snake::moveAndEat(RenderEngine& renderEngine, Food& food, std::unique_ptr<Bi
 
     // spawn big food after eating every x food
     // TODO: never spawn big food in position of normal food
-    if (food.getRespawnCounter() % 2 == 0 && food.getRespawnCounter())
+    if (food.getRespawnCounter() % 1 == 0 && food.getRespawnCounter())
     {
       std::cout << "Big Food Spawned!\n";
       bigFood = std::make_unique<BigFood>(shaderProgram, renderEngine.getGridInfo());
       bigFood->isActive = true;
       renderEngine.setBigFood(bigFood.get());
     }
+
+    return 2;
   }
 
   // check if snake has eaten big food
@@ -152,6 +157,8 @@ int Snake::moveAndEat(RenderEngine& renderEngine, Food& food, std::unique_ptr<Bi
   {
     grow();
     bigFood->isActive = false;
+
+    return 3;
   }
 
   return 0;
@@ -273,4 +280,14 @@ bool Snake::isCollided() const
   }
 
   return false;
+}
+
+/**
+ * reset the snake.
+ * body plus position.
+ */
+void Snake::reset()
+{
+  setSegments(generateSegments());
+  setMoveDelay(Game::GameSpeed);
 }

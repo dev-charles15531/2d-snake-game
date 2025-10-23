@@ -13,6 +13,12 @@ Food::Food(Shader& shaderProgram, const GridInfo& gridInfo, bool isBigFood)
 {
 }
 
+void Food::reset()
+{
+  setPosition(generatePosition());
+  setRespawnCounter(0);
+}
+
 /**
  * Generates a random position for the food within the grid.
  * @return A vector of Cells representing the position of the food.
@@ -22,8 +28,8 @@ std::vector<Cell> Food::generatePosition() const
   auto [xMax, yMax]{gridInfo.getGridSizeI()};
 
   static std::mt19937 gen(std::random_device{}());
-  std::uniform_int_distribution<int> distX(1, xMax - 1);
-  std::uniform_int_distribution<int> distY(1, yMax - 1);
+  std::uniform_int_distribution<int> distX(2, xMax - 2);
+  std::uniform_int_distribution<int> distY(2, yMax - 2);
 
   Cell cell{distX(gen), distY(gen)};
   std::cout << "Food spawned at: (" << cell.x << ", " << cell.y << ")\n";
@@ -42,8 +48,8 @@ std::vector<Cell> Food::generateBigFoodPosition() const
   auto [xMax, yMax]{gridInfo.getGridSizeI()};
 
   static std::mt19937 gen(std::random_device{}());
-  std::uniform_int_distribution<int> distX(2, xMax - 2);
-  std::uniform_int_distribution<int> distY(2, yMax - 2);
+  std::uniform_int_distribution<int> distX(4, xMax - 4);
+  std::uniform_int_distribution<int> distY(4, yMax - 4);
   int rN = distX(gen);
   int rN1 = distY(gen);
 

@@ -5,31 +5,28 @@
 #include <SFML/Window/Window.hpp>
 #include <vector>
 
+#include "../include/game.hpp"
 #include "../include/glad/glad.h"
 #include "../include/glm/gtc/type_ptr.hpp"
-#include "../include/imgui/imgui.h"
-#include "../include/imgui/imgui_impl_opengl3.h"
 #include "../include/imgui/imgui_impl_sfml.h"
 
 RenderEngine::RenderEngine(sf::Window& window, Snake& snake, Shader& shaderProgram, Food& food, ScreenSize& screenSize,
-                           GridInfo& gridInfo)
-    : window(window), snake(snake), shaderProgram(shaderProgram), food(food), screenSize(screenSize), gridInfo(gridInfo)
+                           GridInfo& gridInfo, GUI& gui, Game* game)
+    : window(window),
+      shaderProgram(shaderProgram),
+      snake(snake),
+      food(food),
+      game(game),
+      screenSize(screenSize),
+      gridInfo(gridInfo),
+      gui(gui)
 {
   setupQuad();
   setupCoordinates();
 
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGuiIO& io = ImGui::GetIO();
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
-  // Setup style
-  ImGui::StyleColorsDark();
-  // or: ImGui::StyleColorsLight();
-
-  // Initialize backends
-  ImGui::SFML::Init(window);
-  ImGui_ImplOpenGL3_Init("#version 440");
+  // initialize ImGUI
+  gui.init(window);
+  imguiInitialized = true;
 }
 
 RenderEngine::~RenderEngine() { terminate(); }
@@ -110,43 +107,36 @@ void RenderEngine::render()
   // Poll SFML events once per frame
   pollEvents();
 
-  // Update ImGui and delta time
+  // === ImGui Frame Start ===
   sf::Time dt = clock.restart();
+  gui.beginFrame(window, dt);
 
-  ImGui::SFML::Update(window, dt);
-  ImGui_ImplOpenGL3_NewFrame();
-
-  // Game Stats window
-  ImGui::Begin("Game Stats");
-  ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-  ImGui::Text("Snake Length: %zu", snake.getSegments().size());
-  ImGui::End();
-
-  // Debug window
-  ImGui::Begin("Snake Game Debug");
-  ImGui::Text("Frame time: %.3f ms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-  ImGui::Separator();
-  ImGui::Text("Snake Head: (%d, %d)", snake.getHead().x, snake.getHead().y);
-  ImGui::Text("Score: %d", food.getRespawnCounter());
-  ImGui::Separator();
-  if (ImGui::Button("Restart Game"))
+  // === Draw ImGui windows from Game ===
+  if (game)
   {
-    // TODO: Reset game logic
+    game->showHUD();        // Always show HUD
+    game->showPauseMenu();  // Shows only when paused
   }
-  ImGui::End();
 
-  // --- Render Phase ---
-  ImGui::Render();
+  // Big food timer
+  if (bigFood && bigFood->isActive)
+  {
+    bigFood->drawUI();
+  }
 
+  // === Clear and draw game ===
   clearScreen();
 
   // Draw the snake and food using OpenGL
   snake.draw(VAO);
   food.draw(VAO);
-  if (bigFood && bigFood->isActive) bigFood->draw(VAO);
+  if (bigFood && bigFood->isActive)
+  {
+    bigFood->draw(VAO);
+  }
 
   // Draw ImGui on top of everything
-  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+  gui.endFrame();
 
   // Swap buffers / display frame
   window.display();
@@ -159,16 +149,21 @@ void RenderEngine::terminate()
 {
   if (imguiInitialized)
   {
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui::SFML::Shutdown();
-    ImGui::DestroyContext();
+    // Ensure context is valid before ImGui shutdown
+    if (window.isOpen())
+    {
+      gui.shutdown();
+    }
     imguiInitialized = false;
   }
 
-  // Cleanup OpenGL resources
-  glDeleteVertexArrays(1, &VAO);
-  glDeleteBuffers(1, &VBO);
-  glDeleteBuffers(1, &EBO);
+  // Delete OpenGL resources safely only if context is active
+  if (window.isOpen())
+  {
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+  }
 }
 
 /**
@@ -183,14 +178,6 @@ void RenderEngine::pollEvents()
 
     if (event->is<sf::Event::Closed>())
     {
-      if (imguiInitialized)
-      {
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui::SFML::Shutdown();
-        ImGui::DestroyContext();
-        imguiInitialized = false;
-      }
-
       window.close();
     }
 

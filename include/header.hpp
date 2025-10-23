@@ -75,6 +75,19 @@ struct GridInfo
     return static_cast<float>(screenSize.first) / static_cast<float>(screenSize.second == 0 ? 1.0f : screenSize.second);
   }
 
+  std::pair<GLuint, GLuint> getPixelPosition(GLuint gx, GLuint gy) const
+  {
+    auto [xMax, yMax] = getGridSizeI();
+
+    float cellWidth = static_cast<float>(screenSize.first) / xMax;
+    float cellHeight = static_cast<float>(screenSize.second) / yMax;
+
+    float px = gx * cellWidth;
+    float py = gy * cellHeight;
+
+    return std::make_pair(px, py);
+  }
+
   // Helper for window resizing
   void updateScreenSize(const std::pair<int, int>& newSize) { screenSize = newSize; }
   void updategridSize(GLuint newSize) { baseSize = newSize; }

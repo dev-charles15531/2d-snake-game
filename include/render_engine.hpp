@@ -10,9 +10,12 @@
 #include "./glad/glad.h"
 #include "big_food.hpp"
 #include "food.hpp"
+#include "gui.hpp"
 #include "header.hpp"
 #include "shader.hpp"
 #include "snake.hpp"
+
+class Game;
 
 class RenderEngine
 {
@@ -20,7 +23,7 @@ class RenderEngine
   using EventCallback = std::function<void(const sf::Event&)>;  // Event listener callback type
 
   RenderEngine(sf::Window& window, Snake& snake, Shader& shaderProgram, Food& food, ScreenSize& screenSize,
-               GridInfo& gridInfo);
+               GridInfo& gridInfo, GUI& gui, Game* game = nullptr);
   ~RenderEngine();
   void clearScreen() const;
   void terminate();
@@ -31,10 +34,14 @@ class RenderEngine
   sf::Window& getWindow() const { return window; }
   const std::pair<GLuint, GLuint>& getScreenSize() const { return screenSize; }
   const GridInfo& getGridInfo() const { return gridInfo; }
+  const bool& isImguiInitialized() const { return imguiInitialized; }
 
+  void setImguiInitialized(bool status) { imguiInitialized = status; }
   void setBigFood(BigFood* ptr) { bigFood = ptr; }
 
  private:
+  Game* game{nullptr};
+
   sf::Window& window;
 
   bool imguiInitialized = false;
@@ -43,6 +50,7 @@ class RenderEngine
   Food& food;
   BigFood* bigFood = nullptr;
   Shader& shaderProgram;
+  GUI& gui;
   std::pair<GLuint, GLuint>& screenSize;
   GridInfo& gridInfo;
 

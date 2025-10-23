@@ -21,14 +21,15 @@ class Snake
   void setHead(Cell cell);
   const std::vector<Cell> getBody() const;
   const std::vector<Cell> &getSegments() const { return segments; }
-  void setSegments(std::vector<Cell> segments);
+  void setSegments(std::vector<Cell> segs) { segments = segs; }
 
   //
   void move();
   void setDirection(int dir);
   int getDirection() const;
+  void setMoveDelay(GLfloat delay) { moveDelay = delay; }
   void grow() { segments.push_back(segments.back()); }
-  int moveAndEat(RenderEngine &renderEngine, Food &food, std::unique_ptr<BigFood> &bigFood);
+  GLuint moveAndEat(RenderEngine &renderEngine, Food &food, std::unique_ptr<BigFood> &bigFood);
 
   //
   void attachControl(const sf::Event::KeyPressed &keyPressed);
@@ -39,14 +40,17 @@ class Snake
   bool isEating(const std::vector<Cell> &foodPosition) const;
   bool isCollided() const;
 
+  //
+  void reset();
+
  private:
   Shader &shaderProgram;
   const GridInfo &gridInfo;
   std::vector<Cell> segments;  // stores the segments of the snake
   int direction = 1;           // 0: down, 1: right, 2: up, 3: left
   sf::Clock clock;
-  float moveDelay{0.2f};
-  float timeSinceLastMove{0.0f};
+  GLfloat moveDelay{0.2f};
+  GLfloat timeSinceLastMove{0.0f};
 
   //
   std::vector<Cell> generateSegments();

@@ -31,6 +31,7 @@ set(SOURCES
     src/game.cpp
     src/food.cpp
     src/big_food.cpp
+    src/gui.cpp
     ${IMGUI_SOURCES}
 )
 
