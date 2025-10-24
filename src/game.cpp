@@ -58,11 +58,15 @@ Game::Game()
             snake->attachControl(*keyPressed);
           }
 
-          // toggle play/pause on space key
-          if (keyPressed->scancode == sf::Keyboard::Scan::Space || keyPressed->scancode == sf::Keyboard::Scan ::Escape)
+          if (!showGameOverWindow)
           {
-            isPlaying = !isPlaying;
-            showPauseMenuWindow = !isPlaying;
+            // toggle play/pause on space key
+            if (keyPressed->scancode == sf::Keyboard::Scan::Space ||
+                keyPressed->scancode == sf::Keyboard::Scan ::Escape)
+            {
+              isPlaying = !isPlaying;
+              showPauseMenuWindow = !isPlaying;
+            }
           }
 
           // Reset on R key when paused
@@ -84,13 +88,15 @@ void Game::run()
     // Game logic
     if (isPlaying)
     {
-      GLuint snakeAction = snake->moveAndEat(*renderEngine, *food, bigFood);
+      GLuint snakeAction{snake->moveAndEat(*renderEngine, *food, bigFood)};
 
       if (snakeAction == 1)
       {
-        std::cout << "💀 Game Over!\n";
+        // std::cout << "💀 Game Over!\n";
+
         isPlaying = false;
-        showPauseMenuWindow = true;  // Show pause menu on game over
+        showGameOverWindow = true;
+        showPauseMenuWindow = false;
       }
       else if (snakeAction == 2)
       {
@@ -103,7 +109,7 @@ void Game::run()
     }
 
     // Set transparency for HUD (not pause menu)
-    if (!showPauseMenuWindow)
+    if (!showPauseMenuWindow && !showGameOverWindow)
     {
       ImGui::GetStyle().Alpha = 0.3f;
     }
@@ -118,6 +124,9 @@ void Game::run()
   }
 }
 
+/**
+ * Reset game
+ */
 void Game::resetGame()
 {
   // Update high score
@@ -136,8 +145,8 @@ void Game::resetGame()
 void Game::showHUD()  // TODO: Treat these widgets as obstacles
 {
   // === HUD: Game Stats (top-left) ===
-  ImVec2 windowPos = ImVec2(10.0f, 5.0f);
-  ImVec2 pivot = ImVec2(0.0f, 0.0f);
+  ImVec2 windowPos{ImVec2(10.0f, 5.0f)};
+  ImVec2 pivot{ImVec2(0.0f, 0.0f)};
   ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always, pivot);
   ImGui::Begin("Game Stats", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize);
   ImGui::Text("%s", isPlaying ? "# Playing" : "# Paused");
@@ -161,7 +170,7 @@ void Game::showPauseMenu()
   if (!showPauseMenuWindow) return;
 
   // Center the window
-  ImVec2 center = ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f);
+  ImVec2 center{ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f)};
   ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   ImGui::SetNextWindowSize(ImVec2(400, 500), ImGuiCond_FirstUseEver);
 
@@ -276,4 +285,168 @@ void Game::showPauseMenu()
   ImGui::PopStyleColor(3);
 
   ImGui::End();
+}
+
+void Game::showGameOverMenu()
+{
+  if (!showGameOverWindow) return;
+
+  // Dim the background
+  ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 0.95f));
+  ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.8f, 0.2f, 0.2f, 1.0f));
+
+  // Center the window
+  ImVec2 center = ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f);
+  ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+  ImGui::SetNextWindowSize(ImVec2(450, 400), ImGuiCond_Always);
+
+  ImGui::Begin("##GameOver", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+
+  // === GAME OVER TITLE ===
+  ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);  // Use default font
+  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.3f, 0.3f, 1.0f));
+
+  // Center the text
+  const char* gameOverText = "! GAME OVER !";
+  ImVec2 textSize = ImGui::CalcTextSize(gameOverText);
+  ImGui::SetCursorPosX((ImGui::GetWindowSize().x - textSize.x) * 0.5f);
+  ImGui::Text("%s", gameOverText);
+
+  ImGui::PopStyleColor();
+  ImGui::PopFont();
+
+  ImGui::Spacing();
+  ImGui::Spacing();
+  ImGui::Separator();
+  ImGui::Spacing();
+  ImGui::Spacing();
+
+  // === SCORE DISPLAY ===
+  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.5f, 1.0f));
+
+  // Center score text
+  char scoreText[64];
+  snprintf(scoreText, sizeof(scoreText), "Final Score: %d", score);
+  textSize = ImGui::CalcTextSize(scoreText);
+  ImGui::SetCursorPosX((ImGui::GetWindowSize().x - textSize.x) * 0.5f);
+  ImGui::Text("%s", scoreText);
+
+  ImGui::PopStyleColor();
+
+  ImGui::Spacing();
+
+  // === HIGH SCORE DISPLAY ===
+  bool isNewHighScore = score > highScore;
+
+  if (isNewHighScore)
+  {
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.0f, 1.0f));
+    const char* newHighScoreText = "% NEW HIGH SCORE! %";
+    textSize = ImGui::CalcTextSize(newHighScoreText);
+    ImGui::SetCursorPosX((ImGui::GetWindowSize().x - textSize.x) * 0.5f);
+    ImGui::Text("%s", newHighScoreText);
+    ImGui::PopStyleColor();
+  }
+  else
+  {
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+    snprintf(scoreText, sizeof(scoreText), "High Score: %d", highScore);
+    textSize = ImGui::CalcTextSize(scoreText);
+    ImGui::SetCursorPosX((ImGui::GetWindowSize().x - textSize.x) * 0.5f);
+    ImGui::Text("%s", scoreText);
+    ImGui::PopStyleColor();
+  }
+
+  ImGui::Spacing();
+  ImGui::Spacing();
+
+  // === STATS ===
+  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
+
+  snprintf(scoreText, sizeof(scoreText), "- Final Length: %zu", snake->getSegments().size());
+  textSize = ImGui::CalcTextSize(scoreText);
+  ImGui::SetCursorPosX((ImGui::GetWindowSize().x - textSize.x) * 0.5f);
+  ImGui::Text("%s", scoreText);
+
+  ImGui::PopStyleColor();
+
+  ImGui::Spacing();
+  ImGui::Spacing();
+  ImGui::Separator();
+  ImGui::Spacing();
+  ImGui::Spacing();
+
+  // === MOTIVATIONAL MESSAGE ===
+  const char* messages[] = {"Better luck next time!", "So close! Try again?", "Don't give up!", "You can do better!",
+                            "One more try?"};
+
+  // Pick message based on score (deterministic)
+  const char* message = messages[score % 5];
+  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.9f, 1.0f));
+  textSize = ImGui::CalcTextSize(message);
+  ImGui::SetCursorPosX((ImGui::GetWindowSize().x - textSize.x) * 0.5f);
+  ImGui::Text("%s", message);
+  ImGui::PopStyleColor();
+
+  ImGui::Spacing();
+  ImGui::Spacing();
+  ImGui::Spacing();
+
+  // === ACTION BUTTONS ===
+  float buttonWidth = ImGui::GetWindowSize().x - 40.0f;
+  ImGui::SetCursorPosX(20.0f);
+
+  // Restart Button (Green)
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.7f, 0.2f, 1.0f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.8f, 0.3f, 1.0f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.1f, 0.6f, 0.1f, 1.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
+
+  if (ImGui::Button("> Play Again", ImVec2(buttonWidth, 50)))
+  {
+    resetGame();
+    isPlaying = true;
+    showGameOverWindow = false;
+  }
+
+  ImGui::PopStyleVar();
+  ImGui::PopStyleColor(3);
+
+  ImGui::Spacing();
+  ImGui::SetCursorPosX(20.0f);
+
+  // Main Menu Button (Blue) - Optional, acts as pause menu
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.4f, 0.7f, 1.0f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.5f, 0.8f, 1.0f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.1f, 0.3f, 0.6f, 1.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
+
+  if (ImGui::Button("* Settings", ImVec2(buttonWidth, 50)))
+  {
+    showGameOverWindow = false;
+    showPauseMenuWindow = true;  // Show pause menu for settings
+  }
+
+  ImGui::PopStyleVar();
+  ImGui::PopStyleColor(3);
+
+  ImGui::Spacing();
+  ImGui::SetCursorPosX(20.0f);
+
+  // Quit Button (Red)
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.2f, 0.2f, 1.0f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.3f, 0.3f, 1.0f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
+
+  if (ImGui::Button("x Quit Game", ImVec2(buttonWidth, 50)))
+  {
+    window.close();
+  }
+
+  ImGui::PopStyleVar();
+  ImGui::PopStyleColor(3);
+
+  ImGui::End();
+  ImGui::PopStyleColor(2);  // Pop window background colors
 }

@@ -15,6 +15,7 @@ class Game
   Game();
   void run();
   void showPauseMenu();
+  void showGameOverMenu();
   void resetGame();
   void showHUD();
   const static constexpr GLfloat GameSpeed{0.2f};
@@ -25,6 +26,7 @@ class Game
   ScreenSize screenSize;
 
   bool showPauseMenuWindow{false};
+  bool showGameOverWindow{false};
   GLfloat snakeSpeed{GameSpeed};  // controls moveDelay
   int difficulty{1};              // 0=Easy, 1=Medium, 2=Hard
   GLuint highScore{0};

@@ -13,6 +13,9 @@ Food::Food(Shader& shaderProgram, const GridInfo& gridInfo, bool isBigFood)
 {
 }
 
+/**
+ * Reset this food
+ */
 void Food::reset()
 {
   setPosition(generatePosition());
@@ -32,8 +35,8 @@ std::vector<Cell> Food::generatePosition() const
   std::uniform_int_distribution<int> distY(2, yMax - 2);
 
   Cell cell{distX(gen), distY(gen)};
-  std::cout << "Food spawned at: (" << cell.x << ", " << cell.y << ")\n";
-  std::cout << "[DEBUG] gridWidth=" << xMax << " gridHeight=" << yMax << "\n";
+  // std::cout << "Food spawned at: (" << cell.x << ", " << cell.y << ")\n";
+  // std::cout << "[DEBUG] gridWidth=" << xMax << " gridHeight=" << yMax << "\n";
 
   return {cell};
 }
@@ -50,8 +53,8 @@ std::vector<Cell> Food::generateBigFoodPosition() const
   static std::mt19937 gen(std::random_device{}());
   std::uniform_int_distribution<int> distX(4, xMax - 4);
   std::uniform_int_distribution<int> distY(4, yMax - 4);
-  int rN = distX(gen);
-  int rN1 = distY(gen);
+  int rN{distX(gen)};
+  int rN1{distY(gen)};
 
   return {{rN, rN1}, {rN + 1, rN1}, {rN, rN1 + 1}, {rN + 1, rN1 + 1}};
 }

@@ -22,13 +22,13 @@ void BigFood::startCounting(GLfloat snakeMoveDelay)
   }
 
   // Time delta
-  float currentTime = clock.getElapsedTime().asSeconds();
-  float deltaTime = currentTime - lastTime;
+  float currentTime{clock.getElapsedTime().asSeconds()};
+  float deltaTime{currentTime - lastTime};
   lastTime = currentTime;
 
   // Adjust expiration rate based on snake speed
-  const float baselineDelay = 0.3f;  // typical snake speed baseline
-  float speedFactor = baselineDelay / snakeMoveDelay;
+  const float baselineDelay{0.3f};  // typical snake speed baseline
+  float speedFactor{baselineDelay / snakeMoveDelay};
 
   // Apply scaled time decay
   timeToLive -= deltaTime * speedFactor;
@@ -41,9 +41,11 @@ void BigFood::startCounting(GLfloat snakeMoveDelay)
   }
 }
 
+/**
+ * Draw UI to show progress timer for big food decay.
+ */
 void BigFood::drawUI() const
 {
-  // Debug window
   ImVec2 windowPos{ImVec2((ImGui::GetIO().DisplaySize.x / 2) - 1.0f, ImGui::GetIO().DisplaySize.y - 40.0f)};
   ImVec2 pivot{ImVec2(0.5f, 0.5f)};  // center
 
@@ -56,6 +58,9 @@ void BigFood::drawUI() const
   ImGui::End();
 }
 
+/**
+ * Reset this big food
+ */
 void BigFood::reset()
 {
   setPosition(Food::generateBigFoodPosition());

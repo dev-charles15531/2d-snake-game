@@ -108,14 +108,15 @@ void RenderEngine::render()
   pollEvents();
 
   // === ImGui Frame Start ===
-  sf::Time dt = clock.restart();
+  sf::Time dt{clock.restart()};
   gui.beginFrame(window, dt);
 
   // === Draw ImGui windows from Game ===
   if (game)
   {
-    game->showHUD();        // Always show HUD
-    game->showPauseMenu();  // Shows only when paused
+    game->showHUD();           // Always show HUD
+    game->showGameOverMenu();  // Shows when game is over
+    game->showPauseMenu();     // Shows only when paused
   }
 
   // Big food timer

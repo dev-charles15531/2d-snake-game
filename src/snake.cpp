@@ -141,9 +141,9 @@ GLuint Snake::moveAndEat(RenderEngine& renderEngine, Food& food, std::unique_ptr
 
     // spawn big food after eating every x food
     // TODO: never spawn big food in position of normal food
-    if (food.getRespawnCounter() % 1 == 0 && food.getRespawnCounter())
+    if (food.getRespawnCounter() % 4 == 0 && food.getRespawnCounter())
     {
-      std::cout << "Big Food Spawned!\n";
+      // std::cout << "Big Food Spawned!\n";
       bigFood = std::make_unique<BigFood>(shaderProgram, renderEngine.getGridInfo());
       bigFood->isActive = true;
       renderEngine.setBigFood(bigFood.get());
@@ -213,14 +213,14 @@ void Snake::attachControl(const sf::Event::KeyPressed& keyPressed)
 bool Snake::isEating(const std::vector<Cell>& foodPosition) const
 {
   const auto& head{getHead()};
-  std::cout << "[isEating] Head: (" << head.x << ", " << head.y << ")\n";
+  // std::cout << "[isEating] Head: (" << head.x << ", " << head.y << ")\n";
 
   for (const auto& foodCell : foodPosition)
   {
-    std::cout << "  Food: (" << foodCell.x << ", " << foodCell.y << ")\n";
+    // std::cout << "  Food: (" << foodCell.x << ", " << foodCell.y << ")\n";
     if (head.x == foodCell.x && head.y == foodCell.y)
     {
-      std::cout << "  -> Match found!\n";
+      // std::cout << "  -> Match found!\n";
       return true;
     }
   }
@@ -274,7 +274,7 @@ bool Snake::isCollided() const
   {
     if (snakeHead.x == it->x && snakeHead.y == it->y)
     {
-      std::cout << "Collision detected\n";
+      // std::cout << "Collision detected\n";
       return true;
     }
   }
