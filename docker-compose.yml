@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  snake-game:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: snake-game-novnc
+    ports:
+      # Map container port 8080 to host port 8080
+      - "8080:8080"
+      # Optional: expose VNC port for direct VNC clients
+      - "5900:5900"
+    environment:
+      # Override default display settings if needed
+      - DISPLAY=:99
+      - RESOLUTION=1280x720
+      - VNC_PORT=5900
+      - NOVNC_PORT=8080
+    # Keep container running
+    restart: unless-stopped
+    # Optional: volume mount for shader files (useful during development)
+    # volumes:
+    #   - ./src/shaders:/app/src/shaders:ro
+    # Resource limits (optional, adjust as needed)
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '1.0'
+          memory: 512M
+    # Health check
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
