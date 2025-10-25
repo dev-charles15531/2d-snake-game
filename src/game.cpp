@@ -14,7 +14,7 @@
 
 Game::Game()
     : gridSize(80),  // Square matrix
-      screenSize{sf::VideoMode::getDesktopMode().size.x / 2, sf::VideoMode::getDesktopMode().size.y / 2},
+      screenSize{sf::VideoMode::getDesktopMode().size.x, sf::VideoMode::getDesktopMode().size.y},
       gridInfo(gridSize, screenSize)
 {
   // Setup window and OpenGL context

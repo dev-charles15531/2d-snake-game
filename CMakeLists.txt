@@ -2,15 +2,15 @@ cmake_minimum_required(VERSION 3.17)
 project(snake-game-2d LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# Tell CMake to use static SFML libraries
-set(SFML_STATIC_LIBRARIES TRUE)
-
-# Include directories (for glad and KHR)
+# Include directories for glad and ImGui
 include_directories(include)
 
-# Add ImGui sources
+# ──────────────────────────────────────────────
+# ImGui sources
+# ──────────────────────────────────────────────
 set(IMGUI_SOURCES
     include/imgui/imgui.cpp
     include/imgui/imgui_demo.cpp
@@ -21,7 +21,9 @@ set(IMGUI_SOURCES
     include/imgui/imgui_impl_sfml.cpp
 )
 
-# Add source files
+# ──────────────────────────────────────────────
+# Game sources
+# ──────────────────────────────────────────────
 set(SOURCES
     src/main.cpp
     src/glad.c
@@ -35,19 +37,28 @@ set(SOURCES
     ${IMGUI_SOURCES}
 )
 
-# Add glad as a static library from source
+# ──────────────────────────────────────────────
+# GLAD static library
+# ──────────────────────────────────────────────
 add_library(glad STATIC src/glad.c)
 target_include_directories(glad PUBLIC include)
 
-# Find SFML 3 (case-sensitive components!)
-find_package(SFML 3 REQUIRED COMPONENTS Window System)
+# ──────────────────────────────────────────────
+# Find SFML 3
+# ──────────────────────────────────────────────
+find_package(SFML 3 REQUIRED COMPONENTS System Window)
 
-add_executable(main ${SOURCES})
+# ──────────────────────────────────────────────
+# Executable
+# ──────────────────────────────────────────────
+add_executable(my_game ${SOURCES})
 
-# Link SFML + OpenGL
-target_link_libraries(main
-    glad
-    SFML::Window
-    SFML::System
-    GL  # For OpenGL on Linux
+# Link against SFML 3 imported targets
+target_link_libraries(my_game
+    PRIVATE
+        glad
+        SFML::System
+        SFML::Window
+        GL  # native OpenGL
 )
+
