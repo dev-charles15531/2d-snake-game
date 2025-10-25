@@ -14,7 +14,8 @@
 
 Game::Game()
     : gridSize(80),  // Square matrix
-      screenSize{sf::VideoMode::getDesktopMode().size.x, sf::VideoMode::getDesktopMode().size.y},
+      screenSize{sf::VideoMode::getDesktopMode().size.x,
+                 sf::VideoMode::getDesktopMode().size.y - 50},  // subtract from y axis for noVNC margin
       gridInfo(gridSize, screenSize)
 {
   // Setup window and OpenGL context
