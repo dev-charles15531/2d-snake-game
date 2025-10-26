@@ -144,7 +144,7 @@ These are intentional trade-offs; it’s a learning project, not a shipped AAA g
 
 ```
 MIT License
-(c) Mys3
+(c) dev-charles15531
 ```
 
 ---
