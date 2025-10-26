@@ -1,101 +1,149 @@
-# CMake SFML Project Template
+# 2D Snake Game (OpenGL + SFML)
 
-This repository template should allow for a fast and hassle-free kick start of your next SFML project using CMake.
-Thanks to [GitHub's nature of templates](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template), you can fork this repository without inheriting its Git history.
+**Compact, modern C++ implementation of the classic Snake game, rendered with OpenGL and driven with SFML for windowing/events.**
 
-The template starts out very basic, but might receive additional features over time:
+This repository is a focused learning project built after completing the *Getting Started* chapter on LearnOpenGL. It demonstrates a working 2D game engine pipeline, clean separation between rendering and game logic, and practical use of modern C++ idioms (smart pointers, RAII, clear ownership).
 
-- Basic CMake script to build your project and link SFML on any operating system
-- Basic [GitHub Actions](https://github.com/features/actions) script for all major platforms
+---
 
-## How to Use
+## Demo / Elevator pitch (for recruiters)
 
-1. Install [Git](https://git-scm.com/downloads) and [CMake](https://cmake.org/download/). Use your system's package manager if available.
-2. Follow [GitHub's instructions](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template) for how to use their project template feature to create your own project. If you don't want to use GitHub, see the section below.
-3. Clone your new GitHub repo and open the repo in your text editor of choice.
-4. Open [CMakeLists.txt](CMakeLists.txt). Rename the project and the target name of the executable to whatever name you want. Make sure to change all occurrences.
-5. If you want to add or remove any .cpp files, change the source files listed in the `add_executable` call in CMakeLists.txt to match the source files your project requires. If you plan on keeping the default main.cpp file then no changes are required.
-6. If your code uses the Audio or Network modules then add `SFML::Audio` or `SFML::Network` to the `target_link_libraries` call alongside the existing `SFML::Graphics` library that is being linked.
-7. If you use Linux, install SFML's dependencies using your system package manager. On Ubuntu and other Debian-based distributions you can use the following commands:
-   ```
-   sudo apt update
-   sudo apt install \
-       libxrandr-dev \
-       libxcursor-dev \
-       libxi-dev \
-       libudev-dev \
-       libfreetype-dev \
-       libflac-dev \
-       libvorbis-dev \
-       libgl1-mesa-dev \
-       libegl1-mesa-dev \
-       libfreetype-dev
-   ```
-8. Configure and build your project. Most popular IDEs support CMake projects with very little effort on your part.
+I built a small but complete real-time 2D Snake game using OpenGL for rendering and SFML for windowing/input. The project shows hands-on experience with the OpenGL rendering pipeline (VAO/VBO/EBO, shaders, orthographic projection), GUI integration (ImGui + SFML), and robust C++ architecture (unique_ptr, clear separation of concerns, minimal global state). It’s intentionally compact so the codebase is easy to read and extend.
 
-   - [VS Code](https://code.visualstudio.com) via the [CMake extension](https://code.visualstudio.com/docs/cpp/cmake-linux)
-   - [Visual Studio](https://docs.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio?view=msvc-170)
-   - [CLion](https://www.jetbrains.com/clion/features/cmake-support.html)
-   - [Qt Creator](https://doc.qt.io/qtcreator/creator-project-cmake.html)
+**Skills demonstrated:** Modern C++ (smart pointers, RAII), realtime graphics (OpenGL 4.x), shader authoring, game loop design, GUI integration (ImGui), event-driven design, and pragmatic engineering (clear file layout and modular components).
 
-   Using CMake from the command line is straightforward as well.
-   Be sure to run these commands in the root directory of the project you just created.
+## 🎮 Gameplay Preview
+https://github.com/user-attachments/assets/924754b5-3ddc-45f1-96a6-6fcdcea18d01
 
-   ```
-   cmake -B build
-   cmake --build build
-   ```
+---
 
-9. Enjoy!
+## Features
 
-## Upgrading SFML
+* Clean separation between rendering (`RenderEngine`) and game logic (`Game`, `Snake`, `Food`, `BigFood`).
+* OpenGL rendering with VAO/VBO/EBO and simple vertex/fragment shaders.
+* ImGui-based HUD / pause menu / game-over UI integrated via `ImGui::SFML` + `ImGui_ImplOpenGL3`.
+* Scalable logical grid that adapts to window aspect ratio (`GridInfo`).
+* Normal food (1 cell) and big food (2x2) with a timed UI progress bar.
+* Wrap-around movement (edges mirror the snake to the opposite side).
+* Difficulty presets + custom speed slider.
+* Minimal external dependencies (SFML, GLAD, GLM, ImGui, OpenGL).
 
-SFML is found via CMake's [FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html) module.
-FetchContent automatically downloads SFML from GitHub and builds it alongside your own code.
-Beyond the convenience of not having to install SFML yourself, this ensures ABI compatibility and simplifies things like specifying static versus shared libraries.
+---
 
-Modifying what version of SFML you want is as easy as changing the `GIT_TAG` argument.
-Currently it uses SFML 3 via the `3.0.0` tag.
+## Project layout (important files)
 
-## But I want to...
+```
+/include
+  ├─ big_food.hpp         # BigFood class (timed 2x2 food)
+  ├─ food.hpp             # Food class (position generation + draw)
+  ├─ game.hpp             # Game orchestration, menus, HUD
+  ├─ gui.hpp              # ImGui wrapper
+  ├─ header.hpp           # Common types: Cell, GridInfo, scaleFactor
+  ├─ render_engine.hpp    # OpenGL setup, VAO/VBO/EBO, event dispatch
+  ├─ shader.hpp           # Simple shader loader / uniform helpers
+  └─ snake.hpp            # Snake logic + controls
 
-Modify CMake options by adding them as configuration parameters (with a `-D` flag) or by modifying the contents of CMakeCache.txt and rebuilding.
+/src
+  ├─ big_food.cpp
+  ├─ food.cpp
+  ├─ game.cpp
+  ├─ gui.cpp
+  ├─ render_engine.cpp
+  ├─ shader.cpp
+  └─ snake.cpp
 
-### Not use GitHub
+/CMakeLists.txt
+/README.md
+```
 
-You can use this project without a GitHub account by [downloading the contents](https://github.com/SFML/cmake-sfml-project/archive/refs/heads/master.zip) of the repository as a ZIP archive and unpacking it locally.
-This approach also avoids using Git entirely if you would prefer to not do that.
+---
 
-### Change Compilers
+## Build & Run
 
-See the variety of [`CMAKE_<LANG>_COMPILER`](https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER.html) options.
-In particular you'll want to modify `CMAKE_CXX_COMPILER` to point to the C++ compiler you wish to use.
+### Dependencies
 
-### Change Compiler Optimizations
+* C++17 (recommended: GCC 9+, Clang 10+, MSVC 2019+)
+* CMake (3.10+)
+* SFML (3)
+* OpenGL (core profile 4.4 or compatible)
+* GLAD (included)
+* GLM (included)
+* ImGui (included minimal SFML + OpenGL backend)
 
-CMake abstracts away specific optimizer flags through the [`CMAKE_BUILD_TYPE`](https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html) option.
-By default this project recommends `Release` builds which enable optimizations.
-Other build types include `Debug` builds which enable debug symbols but disable optimizations.
-If you're using a multi-configuration generator (as is often the case on Windows), you can modify the [`CMAKE_CONFIGURATION_TYPES`](https://cmake.org/cmake/help/latest/variable/CMAKE_CONFIGURATION_TYPES.html#variable:CMAKE_CONFIGURATION_TYPES) option.
+> The project includes bundled copies of GLAD, GLM, and ImGui headers. You still need SFML and a working OpenGL context on your platform.
 
-### Change Generators
+### Quick build (Linux/macOS)
 
-While CMake will attempt to pick a suitable default generator, some systems offer a number of generators to choose from.
-Ubuntu, for example, offers Makefiles and Ninja as two potential options.
-For a list of generators, click [here](https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html).
-To modify the generator you're using you must reconfigure your project providing a `-G` flag with a value corresponding to the generator you want.
-You can't simply modify an entry in the CMakeCache.txt file unlike the above options.
-Then you may rebuild your project with this new generator.
+```bash
+git clone <your-repo>
+cd snake-game-2d
+mkdir build && cd build
+cmake ..
+make -j$(nproc)
+./bin/main    # run location determines how shader loads
+```
 
-## More Reading
+On Windows use your preferred CMake generator (Visual Studio / Ninja) and ensure SFML dev libraries are available.
 
-Here are some useful resources if you want to learn more about CMake:
+---
 
-- [Official CMake Tutorial](https://cmake.org/cmake/help/latest/guide/tutorial/)
-- [How to Use CMake Without the Agonizing Pain - Part 1](https://alexreinking.com/blog/how-to-use-cmake-without-the-agonizing-pain-part-1.html)
-- [How to Use CMake Without the Agonizing Pain - Part 2](https://alexreinking.com/blog/how-to-use-cmake-without-the-agonizing-pain-part-2.html)
-- [Better CMake YouTube series by Jefferon Amstutz](https://www.youtube.com/playlist?list=PL8i3OhJb4FNV10aIZ8oF0AA46HgA2ed8g)
+## Controls
+
+* Arrow keys — Move snake
+* Space or Esc — Pause / Resume
+* R — Reset game (when paused)
+* Use Pause menu to change difficulty or set a custom snake speed
+
+---
+
+## Design notes & code highlights
+
+### Grid and coordinate system
+
+* `GridInfo` calculates logical grid size based on a `baseSize` and the current screen aspect ratio. This lets rendering and game logic operate in grid coordinates (1 world unit = 1 cell), while shaders use an orthographic projection.
+
+### Rendering
+
+* `RenderEngine` sets up a reusable quad (VAO/VBO/EBO) and draws everything by applying model transforms per object (snake segments, food cells).
+* Shaders are loaded via a small `Shader` helper class that compiles & links GLSL files and exposes uniform setters.
+
+### Game logic
+
+* `Snake` encapsulates movement, collision detection, growth, and input handling.
+* `Food` and `BigFood` handle spawn logic; normal food spawns as a single Cell, `BigFood` spawns as a 2x2 cluster and has a lifetime with a visible ImGui progress bar.
+* `Game` coordinates the loop, menus, score/highscore, and interactions between components.
+
+### Event dispatch pattern
+
+* `RenderEngine` exposes an `addEventListener` method and stores callbacks. `Game` attaches a listener to receive SFML events. This keeps render + event plumbing separate from game logic.
+
+### Memory & ownership
+
+* `unique_ptr` is used consistently for heap-managed singletons (snake, food, GUI, render engine, shader). `BigFood` is spawned on-demand via `std::make_unique` and handed to `RenderEngine` as a raw pointer for drawing, which keeps ownership in the `Game` side.
+
+---
+
+## Known issues & honest caveats (read this before you tinker)
+
+I don’t sugarcoat, here’s what’s rough and what you should expect:
+
+* **Edge cases for big food spawn**: `TODO` comment in code notes big food might spawn on top of normal food. That needs a collision check when spawning.
+* **High score persistence**: high score is only in-memory, there’s a TODO to persist it to disk.
+* **Magic numbers and hard-coded shader paths**: shader paths are relative (`../src/shaders/...`) which may break if you run the binary from another working directory. Make them configurable or package shaders alongside the binary.
+* **No automated tests**: this is a small demo app; adding unit tests for grid calculations / spawn logic would make the repo more production-ready.
+* **Resource cleanup depends on window context**: `RenderEngine::terminate()` checks `window.isOpen()` before releasing GL resources; double-check destruction order on application shutdown.
+
+These are intentional trade-offs; it’s a learning project, not a shipped AAA game. But they’re quick fixes if you want to polish for contribution sake or anything.
+
+---
 
 ## License
 
-The source code is dual licensed under Public Domain and MIT -- choose whichever you prefer.
+```
+MIT License
+(c) Mys3
+```
+
+---
+
+Built after reading the [*Getting Started*](https://learnopengl.com/Getting-started) chapter on [LearnOpenGL.com](https://learnopengl.com).
