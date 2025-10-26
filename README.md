@@ -13,7 +13,10 @@ I built a small but complete real-time 2D Snake game using OpenGL for rendering 
 **Skills demonstrated:** Modern C++ (smart pointers, RAII), realtime graphics (OpenGL 4.x), shader authoring, game loop design, GUI integration (ImGui), event-driven design, and pragmatic engineering (clear file layout and modular components).
 
 ## 🎮 Gameplay Preview
-https://github.com/dev-charles15531/2d-snake-game/assets/924754b5-3ddc-45f1-96a6-6fcdcea18d01
+<video src="https://github.com/user-attachments/assets/924754b5-3ddc-45f1-96a6-6fcdcea18d01" 
+controls width="600">
+  Your browser does not support the video tag.
+</video>
 
 ---
 
