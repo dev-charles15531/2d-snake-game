@@ -6,14 +6,14 @@ This repository is a focused learning project built after completing the *Gettin
 
 ---
 
-## Demo / Elevator pitch (for recruiters)
+## Demo
 
 I built a small but complete real-time 2D Snake game using OpenGL for rendering and SFML for windowing/input. The project shows hands-on experience with the OpenGL rendering pipeline (VAO/VBO/EBO, shaders, orthographic projection), GUI integration (ImGui + SFML), and robust C++ architecture (unique_ptr, clear separation of concerns, minimal global state). It’s intentionally compact so the codebase is easy to read and extend.
 
 **Skills demonstrated:** Modern C++ (smart pointers, RAII), realtime graphics (OpenGL 4.x), shader authoring, game loop design, GUI integration (ImGui), event-driven design, and pragmatic engineering (clear file layout and modular components).
 
 ## 🎮 Gameplay Preview
-https://github.com/user-attachments/assets/924754b5-3ddc-45f1-96a6-6fcdcea18d01
+https://github.com/dev-charles15531/2d-snake-game/assets/924754b5-3ddc-45f1-96a6-6fcdcea18d01
 
 ---
 
